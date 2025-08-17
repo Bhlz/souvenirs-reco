@@ -1,0 +1,87 @@
+{
+  "products": [
+    {
+      "slug": "alebrije-oaxaca",
+      "name": "Alebrije artesanal de Oaxaca",
+      "price": 749,
+      "images": [
+        "https://images.unsplash.com/photo-1545249390-6bdfa286032f?q=80&w=1200",
+        "https://images.unsplash.com/photo-1582582494700-85d75390b815?q=80&w=1200",
+        "/uploads/1755406874546-agua.png",
+        "/uploads/1755406885577-desechos.png",
+        "/uploads/1755406890196-agua.png"
+      ],
+      "rating": 4.9,
+      "reviews": 128,
+      "category": "Artesanías",
+      "description": "Hecho y pintado a mano. Incluye certificado de autenticidad y empaque para regalo.",
+      "stock": 12,
+      "variants": [
+        {
+          "name": "Variante",
+          "values": [
+            "Chico",
+            "Mediano",
+            "Grande"
+          ]
+        }
+      ],
+      "bundleSkus": [
+        "taza-talavera",
+        "rebozo-artesanal"
+      ]
+    },
+    {
+      "slug": "rebozo-artesanal",
+      "name": "Rebozo artesanal (Tenancingo)",
+      "price": 899,
+      "images": [
+        "https://turismo.guadalajaravisit.com/wp-content/uploads/2020/05/compras-guadalajara-tour-artesanias-1024x684.jpg",
+        "/uploads/1755406987369-Capturadepantalla2024-06-15232854.jpg"
+      ],
+      "rating": 4.7,
+      "reviews": 76,
+      "category": "Moda",
+      "description": "Tejido en telar de cintura, suave y resistente. Incluye bolsa protectora.",
+      "stock": 7,
+      "bundleSkus": []
+    },
+    {
+      "slug": "sombrero-charro",
+      "name": "Sombrero charro (Jalisco)",
+      "price": 1199,
+      "images": [
+        "https://images.unsplash.com/photo-1519682577862-22b62b24e493?q=80&w=1200"
+      ],
+      "rating": 4.6,
+      "reviews": 54,
+      "category": "Moda",
+      "description": "Hecho a mano, materiales premium. Talla ajustable.",
+      "stock": 5
+    },
+    {
+      "slug": "dsa",
+      "name": "dsa",
+      "price": 12,
+      "images": [],
+      "rating": 5,
+      "reviews": 0,
+      "category": "21",
+      "description": "21",
+      "stock": 12,
+      "bundleSkus": []
+    },
+    {
+      "slug": "21",
+      "name": "12",
+      "price": 1,
+      "images": [],
+      "rating": 5,
+      "reviews": 0,
+      "category": "21",
+      "description": "21",
+      "stock": 1,
+      "bundleSkus": []
+    }
+  ]
+}
