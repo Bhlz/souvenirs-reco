@@ -1,17 +1,20 @@
 import { NextRequest } from 'next/server';
 import { MercadoPagoConfig, Preference } from 'mercadopago';
-import { getAllProducts } from '@/lib/store';
-import { createOrder } from '@/lib/store';
+import { getAllProducts, createOrder } from '@/lib/store';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const items: { slug: string; qty: number }[] = body?.items || [];
     const billing = body?.billing || null;
-    if (!Array.isArray(items) || items.length === 0) return new Response('Bad Request', { status: 400 });
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return new Response('Bad Request', { status: 400 });
+    }
 
     const all = await getAllProducts();
     const bySlug = Object.fromEntries(all.map(p => [p.slug, p]));
+
     const orderItems = items.map(it => {
       const p = bySlug[it.slug];
       if (!p) throw new Error('Invalid product');
@@ -29,7 +32,7 @@ export async function POST(req: NextRequest) {
     const pref = await preference.create({
       body: {
         items: orderItems.map(it => ({
-           id: it.slug,
+          id: it.slug, // 👈 necesario para Mercado Pago (usa el slug como id único)
           title: it.title,
           quantity: it.qty,
           currency_id: 'MXN',
@@ -50,7 +53,7 @@ export async function POST(req: NextRequest) {
     await createOrder({
       id: orderId,
       preferenceId: pref.id!,
-      items: orderItems.map(({slug, qty, price}) => ({slug, qty, price})),
+      items: orderItems.map(({ slug, qty, price }) => ({ slug, qty, price })),
       total,
       status: 'pending',
       raw: { billing },
