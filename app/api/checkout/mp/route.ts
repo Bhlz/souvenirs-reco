@@ -29,6 +29,7 @@ export async function POST(req: NextRequest) {
     const pref = await preference.create({
       body: {
         items: orderItems.map(it => ({
+           id: it.slug,
           title: it.title,
           quantity: it.qty,
           currency_id: 'MXN',
