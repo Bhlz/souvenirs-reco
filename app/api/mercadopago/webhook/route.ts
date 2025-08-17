@@ -15,7 +15,10 @@ export async function POST(req: NextRequest) {
       const res = await payment.get({ id: dataId });
       const status = (res?.status as string) || 'unknown';
       const externalRef = (res?.external_reference as string) || '';
-      const prefId = (res?.metadata?.preference_id as string) || (res?.order?.id as string) || '';
+const prefId =
+  (res?.metadata?.preference_id as string) ||
+  (res?.order?.id ? String(res.order.id) : '') ||
+  '';
 
       if (externalRef) {
         await updateOrderByExternalRef(externalRef, { status: status as any, paymentId: dataId, raw: res });
