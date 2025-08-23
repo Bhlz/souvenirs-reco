@@ -10,10 +10,10 @@ export default function Hero() {
         <div>
           <div className="badge mb-4">Hecho en México</div>
           <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">
-            Souvenirs Reco  mexicanos auténticos <span className="text-accent">listos para regalo</span>
+            Souvenirs Greco  <span className="text-accent">Nuestra Historia</span>
           </h1>
           <p className="mt-4 text-lg text-neutral-600">
-            Piezas artesanales con envío rápido a todo México y devoluciones fáciles.
+            Más que un recuerdo, una experiencia única. ¡Al estilo Jalisco!
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href="#colecciones" className="btn-primary">Comprar ahora</Link>

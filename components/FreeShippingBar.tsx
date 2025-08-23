@@ -4,7 +4,8 @@ import { cartTotal } from '@/lib/cart';
 
 export default function FreeShippingBar() {
   const [amount, setAmount] = useState(0);
-  const [min] = useState(999);
+  const [min] = useState(299
+  );
 
   useEffect(() => {
     let priceMap: Record<string, number> = {};

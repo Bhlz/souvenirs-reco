@@ -2,19 +2,19 @@ import Image from 'next/image';
 
 export default function Footer() {
   const methods = [
-    { src: '/logos/visa.svg', alt: 'Visa' },
-    { src: '/logos/mastercard.svg', alt: 'Mastercard' },
-    { src: '/logos/oxxo.svg', alt: 'OXXO Pay' },
-    { src: '/logos/spei.svg', alt: 'SPEI' },
-    { src: '/logos/paypal.svg', alt: 'PayPal' },
+    { src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/1280px-Visa_Inc._logo.svg.png', alt: 'Visa' },
+    { src: ' https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg', alt: 'Mastercard' },
+    { src: 'https://media.informabtl.com/wp-content/uploads/2016/04/OXXO-01-e1459812964813-310x194.png', alt: 'OXXO Pay' },
+    { src: 'https://ghanasoccernet.com/zm/wp-content/uploads/sites/7/2020/11/spei.png', alt: 'SPEI' },
+    { src: 'https://cdn.worldvectorlogo.com/logos/paypal-3.svg', alt: 'PayPal' },
   ];
   return (
     <footer className="border-t">
       <div className="container py-10">
         <div className="grid gap-8 md:grid-cols-3">
           <div>
-            <div className="font-bold">SouvenirsMX</div>
-            <p className="mt-2 text-sm text-neutral-600">Piezas auténticas, envío rápido y empaques listos para regalo.</p>
+            <div className="font-bold">Souvenirs Greco</div>
+            <p className="mt-2 text-sm text-neutral-600">La esencia de México en tus manos.</p>
           </div>
           <div className="text-sm">
             <div className="font-semibold">Ayuda</div>
@@ -35,7 +35,7 @@ export default function Footer() {
             </div>
           </div>
         </div>
-        <div className="mt-8 text-xs text-neutral-500">© {new Date().getFullYear()} SouvenirsMX. Todos los derechos reservados.</div>
+        <div className="mt-8 text-xs text-neutral-500">© {new Date().getFullYear()} Souvenirs Greco®. Todos los derechos reservados.</div>
       </div>
     </footer>
   );
