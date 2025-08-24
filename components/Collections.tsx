@@ -6,8 +6,8 @@ export default async function Collections() {
   const items = (await getAllProducts()).slice(0, 8);
   return (
     <section id="colecciones" className="container py-10 md:py-16">
-      <h2 className="section-title">Best sellers y colecciones</h2>
-      <p className="mt-2 text-neutral-600">Compra rápido por categoría o arma tu kit de regalo.</p>
+      <h2 className="section-title">Productos</h2>
+      <p className="mt-2 text-neutral-600">Elige tu souvenir perfecto, directo del corazón de Guadalajara.</p>
       <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
         {items.map((p) => (
           <Link key={p.slug} href={`/product/${p.slug}`} className="group card p-0 overflow-hidden">
