@@ -1,9 +1,8 @@
 'use client';
-import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
+import SafeImage from '@/components/SafeImage';
 
-const sanitizeImages = (arr?: string[]) =>
-  (arr ?? []).filter((s) => !!s && s.trim() !== '');
+const sanitizeImages = (arr?: string[]) => (arr ?? []).filter((s) => !!s && s.trim() !== '');
 
 export default function ProductGallery({
   images = [],
@@ -56,7 +55,14 @@ export default function ProductGallery({
           {imgs.length > 0 ? (
             imgs.map((src, i) => (
               <div key={i} className={`relative min-w-full snap-center ${aspect}`}>
-                <Image src={src} alt={`${name} ${i + 1}`} fill className="object-cover" sizes="100vw" priority={i===0}/>
+                <SafeImage
+                  src={src}
+                  alt={`${name} ${i + 1}`}
+                  fill
+                  className="object-cover"
+                  sizes="100vw"
+                  priority={i === 0}
+                />
               </div>
             ))
           ) : (
@@ -85,8 +91,18 @@ export default function ProductGallery({
       {imgs.length > 1 && (
         <div className="mt-3 grid grid-cols-6 gap-2 md:grid-cols-8">
           {imgs.map((src, i) => (
-            <button key={i} onClick={() => goTo(i)} className={`relative aspect-square overflow-hidden rounded-xl border ${i===idx ? 'ring-2 ring-black' : ''}`}>
-              <Image src={src} alt={`${name} thumb ${i + 1}`} fill className="object-cover" sizes="150px" />
+            <button
+              key={i}
+              onClick={() => goTo(i)}
+              className={`relative aspect-square overflow-hidden rounded-xl border ${i===idx ? 'ring-2 ring-black' : ''}`}
+            >
+              <SafeImage
+                src={src}
+                alt={`${name} thumb ${i + 1}`}
+                fill
+                className="object-cover"
+                sizes="150px"
+              />
             </button>
           ))}
         </div>
