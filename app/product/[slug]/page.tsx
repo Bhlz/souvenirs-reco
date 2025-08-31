@@ -1,10 +1,16 @@
-import { getAllProducts, getProduct } from '@/lib/store';
-import AddToCartButtons from '@/components/AddToCartButtons';
-import ProductCard from '@/components/ProductCard';
-import ProductGallery from '@/components/ProductGallery';
+import { getAllProducts, getProduct } from "@/lib/store";
+import AddToCartButtons from "@/components/AddToCartButtons";
+import ProductCard from "@/components/ProductCard";
+import ProductGallery from "@/components/ProductGallery";
 
-export default async function ProductPage({ params }: { params: { slug: string }}) {
-  const p = await getProduct(params.slug);
+export default async function ProductPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;              // 👈 importante en Next 15
+
+  const p = await getProduct(slug);
   if (!p) return <div className="container py-10">Producto no encontrado</div>;
 
   const others = (await getAllProducts()).filter(x => x.slug !== p.slug).slice(0, 4);
@@ -13,7 +19,6 @@ export default async function ProductPage({ params }: { params: { slug: string }
     <div className="container py-8">
       <div className="grid gap-8 md:grid-cols-2">
         <ProductGallery images={p.images ?? []} name={p.name} />
-
         <div>
           <h1 className="text-3xl font-bold">{p.name}</h1>
           <div className="mt-2 text-neutral-600">{p.rating} ★ ({p.reviews} reseñas)</div>
@@ -46,9 +51,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
       <div className="mt-12">
         <h2 className="section-title">También te puede gustar</h2>
         <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-          {others.map(x => (
-            <ProductCard key={x.slug} p={x} />
-          ))}
+          {others.map(x => <ProductCard key={x.slug} p={x} />)}
         </div>
       </div>
     </div>
