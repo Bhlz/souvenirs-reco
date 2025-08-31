@@ -75,8 +75,8 @@ export default function Story() {
           className={`relative aspect-[4/3] overflow-hidden rounded-3xl shadow-xl ${getAnimationClass('story-image')}`}
         >
           <Image 
-            src="https://images.unsplash.com/photo-1523821741446-edb2b68bb7a0?q=80&w=1600" 
-            alt="Taller artesanal" 
+            src="/logos/logosouvenirs-greco.jpg" 
+            alt="Catedral GDL" 
             fill 
             className="object-cover transition-transform duration-500 hover:scale-105"
           />
@@ -103,7 +103,7 @@ export default function Story() {
             >
               <span className="font-semibold text-neutral-900">Souvenirs Greco</span> nació en 2025, 
               impulsado por la experiencia y respaldo de Artesanías Noé, con la misión de compartir 
-              la esencia de México —y en especial de Jalisco— a través de piezas únicas y auténticas.
+              la esencia de México y en especial de Jalisco a través de piezas únicas y auténticas.
             </p>
             
             <p 
@@ -161,8 +161,7 @@ export default function Story() {
               style={{ transitionDelay: visibleElements.has('story-list') ? '600ms' : '0ms' }}>
                 <span className="text-xl mt-0.5" style={{ color: '#043d3f' }}>•</span>
                 <span className="text-neutral-700">
-                  <strong className="text-neutral-900">Relación directa con talleres:</strong> Trabajamos 
-                  de la mano con artesanos locales
+                  <strong className="text-neutral-900">Hecho a mano con esencia mexicana:</strong> Productos auténticos elaborados por artesanos de todo México
                 </span>
               </li>
               <li className={`flex items-start gap-3 transition-all duration-500 hover:translate-x-2 ${
@@ -171,8 +170,7 @@ export default function Story() {
               style={{ transitionDelay: visibleElements.has('story-list') ? '700ms' : '0ms' }}>
                 <span className="text-xl mt-0.5" style={{ color: '#043d3f' }}>•</span>
                 <span className="text-neutral-700">
-                  <strong className="text-neutral-900">Certificados de autenticidad:</strong> Garantizamos 
-                  la procedencia de cada pieza
+                  <strong className="text-neutral-900">Variedad y calidad:</strong>Mayor surtido y productos de la más alta calidad de todo el mercado.
                 </span>
               </li>
               <li className={`flex items-start gap-3 transition-all duration-500 hover:translate-x-2 ${
@@ -181,7 +179,7 @@ export default function Story() {
               style={{ transitionDelay: visibleElements.has('story-list') ? '800ms' : '0ms' }}>
                 <span className="text-xl mt-0.5" style={{ color: '#043d3f' }}>•</span>
                 <span className="text-neutral-700">
-                  <strong className="text-neutral-900">Empaque seguro:</strong> Listo para regalo y 
+                  <strong className="text-neutral-900">Envíos seguros:</strong> Listo para regalo y 
                   protegido para envíos
                 </span>
               </li>
