@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { ShieldCheck, Truck, CreditCard } from 'lucide-react';
 
 // 👇 nombre correcto (minúsculas + guion)
-import bg from '@/public/logos/logosouvenirs-greco.jpg';
+import bg from '@/public/logos/portadasouvenirsgreco.jpg';
 
 export default function Hero() {
   return (
