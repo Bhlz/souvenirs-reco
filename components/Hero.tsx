@@ -2,20 +2,21 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { ShieldCheck, Truck, CreditCard } from 'lucide-react';
+import bg from '@/public/logos/logosouvenirsGreco.jpg'; // ← único cambio funcional (import estático)
 
 export default function Hero() {
   return (
     <section className="relative h-screen overflow-hidden">
       {/* Contenedor de la imagen de fondo */}
       <div className="absolute inset-0 z-0">
-       <Image
-  src="/logos/LogosouvenirsGreco.jpg"  // ← existe
-  alt="Souvenirs mexicanos de fondo"
-  fill
-  priority
-  className="object-cover"
-/>
-
+        <Image
+          src={bg}                            // ← ahora importado
+          alt="Souvenirs mexicanos de fondo"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
       </div>
 
       {/* ESTE ES EL CONTENEDOR PRINCIPAL QUE DEBES MODIFICAR.
@@ -28,7 +29,7 @@ export default function Hero() {
         {/*
           Para mover el contenido:
           - A la IZQUIERDA: cambia 'justify-center' por 'justify-start'.
-          - A la DERECHA: cambia 'justify-center' por 'justify-end'.
+          - A LA DERECHA: cambia 'justify-center' por 'justify-end'.
           
           - ARRIBA: cambia 'items-center' por 'items-start'.
           - ABAJO: cambia 'items-center' por 'items-end'.
