@@ -161,7 +161,7 @@ export default function Story() {
               style={{ transitionDelay: visibleElements.has('story-list') ? '600ms' : '0ms' }}>
                 <span className="text-xl mt-0.5" style={{ color: '#043d3f' }}>•</span>
                 <span className="text-neutral-700">
-                  <strong className="text-neutral-900">Hecho a mano con esencia mexicana:</strong> Productos auténticos elaborados por artesanos de todo México
+                  <strong className="text-neutral-900">Hecho a mano:</strong> Cada producto es elaborado por artesanos de distintas partes de México, garantizando autenticidad y tradición en cada pieza.
                 </span>
               </li>
               <li className={`flex items-start gap-3 transition-all duration-500 hover:translate-x-2 ${
@@ -170,7 +170,7 @@ export default function Story() {
               style={{ transitionDelay: visibleElements.has('story-list') ? '700ms' : '0ms' }}>
                 <span className="text-xl mt-0.5" style={{ color: '#043d3f' }}>•</span>
                 <span className="text-neutral-700">
-                  <strong className="text-neutral-900">Variedad y calidad:</strong>Mayor surtido y productos de la más alta calidad de todo el mercado.
+                  <strong className="text-neutral-900">Variedad y calidad:</strong> Contamos con el mayor surtido y productos de alta calidad en todo el Mercado Libertad (San Juan de Dios).
                 </span>
               </li>
               <li className={`flex items-start gap-3 transition-all duration-500 hover:translate-x-2 ${
@@ -179,8 +179,7 @@ export default function Story() {
               style={{ transitionDelay: visibleElements.has('story-list') ? '800ms' : '0ms' }}>
                 <span className="text-xl mt-0.5" style={{ color: '#043d3f' }}>•</span>
                 <span className="text-neutral-700">
-                  <strong className="text-neutral-900">Envíos seguros:</strong> Listo para regalo y 
-                  protegido para envíos
+                  <strong className="text-neutral-900">Envíos seguros:</strong> Llevamos tus recuerdos favoritos a cualquier parte del mundo de manera rápida y protegida.
                 </span>
               </li>
             </ul>
