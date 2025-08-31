@@ -1,6 +1,8 @@
 {
+  
   "name": "souvenirs-mx",
   "private": true,
+  "engines": { "node": ">=18.17 <=22.x" },
   "version": "0.3.0",
   "type": "module",
   "scripts": {
@@ -29,4 +31,5 @@
     "tailwindcss": "3.4.4",
     "typescript": "^5.4.5"
   }
+  
 }

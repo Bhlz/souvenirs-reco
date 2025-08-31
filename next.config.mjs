@@ -11,7 +11,7 @@ const nextConfig = {
       { protocol: 'https', hostname: 'i.imgur.com' },
     ],
     // Si quieres evitar el optimizador de Next/Vercel temporalmente:
-    // unoptimized: true,
+    unoptimized: true,
   },
   experimental: { optimizePackageImports: ['lucide-react'] },
 
