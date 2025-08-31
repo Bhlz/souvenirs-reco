@@ -33,7 +33,7 @@ export default function Hero() {
             Más que un recuerdo, una experiencia única. ¡Al estilo Jalisco!.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Link href="#colecciones" className="btn-primary transition-transform duration-300 hover:scale-105">
+            <Link href="#collections" className="btn-primary transition-transform duration-300 hover:scale-105">
               Comprar ahora
             </Link>
             <a href="#story" className="btn transition-transform duration-300 hover:scale-105">

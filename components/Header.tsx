@@ -4,19 +4,45 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ShoppingCart } from 'lucide-react';
-import logo from '@/public/logos/logosouvenirs-greco.jpg'; // ⬅️ import estático
+import logo from '@/public/logos/logosouvenirs-greco.jpg';
+import { cartCount } from '@/lib/cart';
 
 export default function Header() {
   const [isFixed, setIsFixed] = useState(false);
+  const [count, setCount] = useState(0);
+  const [bump, setBump] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
 
+  // Keyframes para el shake y el pop del badge
+  useEffect(() => {
+    if ((window as any).__cart_keyframes) return;
+    const style = document.createElement('style');
+    style.innerHTML = `
+      @keyframes cart-shake {
+        0% { transform: scale(1) rotate(0deg); }
+        15% { transform: scale(1.05) rotate(-8deg); }
+        30% { transform: scale(1.05) rotate(8deg); }
+        45% { transform: scale(1.05) rotate(-6deg); }
+        60% { transform: scale(1.05) rotate(6deg); }
+        75% { transform: scale(1.02) rotate(-2deg); }
+        100% { transform: scale(1) rotate(0deg); }
+      }
+      @keyframes badge-pop {
+        0% { transform: scale(0.8); opacity: 0.5; }
+        60% { transform: scale(1.15); opacity: 1; }
+        100% { transform: scale(1); opacity: 1; }
+      }
+    `;
+    document.head.appendChild(style);
+    (window as any).__cart_keyframes = true;
+  }, []);
+
+  // Sticky/fixed header según scroll
   useEffect(() => {
     let ticking = false;
-
     const handleScroll = () => {
       const freeshippingBar = document.getElementById('freeshipping-bar');
       const threshold = freeshippingBar?.offsetHeight ?? 0;
-
       if (!ticking) {
         window.requestAnimationFrame(() => {
           setIsFixed(window.scrollY > threshold);
@@ -25,18 +51,54 @@ export default function Header() {
         ticking = true;
       }
     };
-
-    // Invocar una vez por si entras con scroll
     handleScroll();
-
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Badge + shake: suscripciones a eventos del carrito
+  useEffect(() => {
+    const update = (n?: number) => setCount(typeof n === 'number' ? n : cartCount());
+    update(); // inicial
+
+    const onChanged = (e: Event) => {
+      const d = (e as CustomEvent).detail as { count?: number } | undefined;
+      update(d?.count);
+      // anima el badge al cambiar
+      const el = document.getElementById('cart-badge');
+      if (el) {
+        el.style.animation = 'none';
+        // reflow para reiniciar animación
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+        el.offsetHeight;
+        el.style.animation = 'badge-pop 300ms ease';
+        setTimeout(() => { el.style.animation = ''; }, 300);
+      }
+    };
+    const onStorage = () => update();
+    const onBump = () => {
+      setBump(true);
+      setTimeout(() => setBump(false), 650);
+    };
+
+    window.addEventListener('cart:changed', onChanged as any);
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('cart:bump', onBump);
+
+    return () => {
+      window.removeEventListener('cart:changed', onChanged as any);
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('cart:bump', onBump);
+    };
+  }, []);
+
+  // Límite visual 99+
+  const badgeText = count > 99 ? '99+' : String(count);
+
   return (
     <>
       {/* Barra de envío gratuito */}
-      <div id="freeshipping-bar" className="w-full bg-blue-500 text-white text-center py-2">
+      <div id="freeshipping-bar" className="w-full bg-blue-500 py-2 text-center text-white">
         Envío gratuito en pedidos de +$500
       </div>
 
@@ -63,18 +125,29 @@ export default function Header() {
 
           {/* Navegación */}
           <nav className="hidden gap-6 md:flex" aria-label="Main">
-            <a href="#colecciones" className="hover:text-brand transition-colors duration-200">Colecciones</a>
-            <a href="#opinion" className="hover:text-brand transition-colors duration-200">Reseñas</a>
-            <a href="#faq" className="hover:text-brand transition-colors duration-200">FAQ</a>
+            <a href="#colecciones" className="transition-colors duration-200 hover:text-brand">Colecciones</a>
+            <a href="#opinion" className="transition-colors duration-200 hover:text-brand">Reseñas</a>
+            <a href="#faq" className="transition-colors duration-200 hover:text-brand">FAQ</a>
           </nav>
 
-          {/* Carrito */}
+          {/* Carrito con badge y vibración */}
           <Link
             href="/cart"
-            className="btn btn-secondary flex items-center transition-transform duration-300 hover:scale-110"
+            aria-label="Ir al carrito"
+            className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border bg-white/80 shadow-sm ring-1 ring-black/5 backdrop-blur transition hover:-translate-y-0.5 hover:shadow"
+            style={{ animation: bump ? 'cart-shake 650ms ease' : undefined }}
+            title="Carrito"
           >
-            <ShoppingCart className="mr-2 h-5 w-5" />
-            <span className="animate-shake">Carrito</span>
+            <ShoppingCart className="h-5 w-5" />
+            {count > 0 && (
+              <span
+                id="cart-badge"
+                className="absolute -right-1 -top-1 min-w-[18px] rounded-full bg-pink-600 px-1 text-center text-[11px] font-bold leading-[18px] text-white shadow ring-2 ring-white"
+                style={{ height: 18 }}
+              >
+                {badgeText}
+              </span>
+            )}
           </Link>
         </div>
       </header>

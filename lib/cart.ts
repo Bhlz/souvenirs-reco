@@ -1,4 +1,5 @@
 'use client';
+
 export type CartItem = { slug: string; qty: number };
 const KEY = 'souvenirs_cart_v1';
 
@@ -11,12 +12,19 @@ export function getCart(): CartItem[] {
   return safeParse(localStorage.getItem(KEY));
 }
 
-function emitChange(oldValue: string | null, newValue: string) {
+function countItems(items: CartItem[]) {
+  return items.reduce((s, it) => s + (it.qty || 0), 0);
+}
+
+function emitAll(oldValue: string | null, newValue: string, items: CartItem[]) {
   if (typeof window === 'undefined') return;
   try {
-    // Evento propio (misma pestaña)
+    // Evento nuevo con el conteo actual
+    const count = countItems(items);
+    window.dispatchEvent(new CustomEvent('cart:changed', { detail: { count } }));
+    // Compatibilidad con tu código previo
     window.dispatchEvent(new Event('cartchange'));
-    // Opcional: disparar también un StorageEvent (para quien escuche 'storage')
+    // Simular 'storage' para listeners en la misma pestaña
     const se = new StorageEvent('storage', {
       key: KEY, oldValue, newValue, storageArea: localStorage, url: location.href,
     });
@@ -31,7 +39,7 @@ export function setCart(items: CartItem[]) {
   const oldValue = localStorage.getItem(KEY);
   const newValue = JSON.stringify(items);
   localStorage.setItem(KEY, newValue);
-  emitChange(oldValue, newValue);
+  emitAll(oldValue, newValue, items);
 }
 
 export function addToCart(slug: string, qty = 1) {
@@ -39,13 +47,17 @@ export function addToCart(slug: string, qty = 1) {
   const i = cart.findIndex(x => x.slug === slug);
   if (i >= 0) cart[i].qty += qty; else cart.push({ slug, qty });
   setCart(cart);
+  // Efecto de vibración del carrito al añadir
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('cart:bump'));
+  }
 }
 
 export function decrementFromCart(slug: string, qty = 1) {
   const cart = getCart();
   const i = cart.findIndex(x => x.slug === slug);
   if (i === -1) return;
-  const newQty = cart[i].qty - qty;
+  const newQty = (cart[i].qty || 0) - qty;
   if (newQty > 0) cart[i].qty = newQty;
   else cart.splice(i, 1);
   setCart(cart);
@@ -54,7 +66,7 @@ export function decrementFromCart(slug: string, qty = 1) {
 export const removeOneFromCart = (slug: string) => decrementFromCart(slug, 1);
 
 export function cartTotal(amountBySlug: (slug: string) => number) {
-  return getCart().reduce((sum, item) => sum + amountBySlug(item.slug) * item.qty, 0);
+  return getCart().reduce((sum, item) => sum + amountBySlug(item.slug) * (item.qty || 0), 0);
 }
 
 export function removeFromCart(slug: string) {
@@ -62,3 +74,8 @@ export function removeFromCart(slug: string) {
 }
 
 export function clearCart() { setCart([]); }
+
+// Para inicializar el badge en el header
+export function cartCount() {
+  return countItems(getCart());
+}

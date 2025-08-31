@@ -10,16 +10,14 @@ export default function AddToCartButtons({ slug }: { slug: string }) {
 
   function add() {
     setBusy('add');
-    addToCart(slug, 1);
-    window.dispatchEvent(new Event('storage'));
+    addToCart(slug, 1);              // ← dispara cart:bump + cart:changed
     toast('Agregado al carrito');
     setTimeout(()=> setBusy(null), 400);
   }
 
   function buyNow() {
     setBusy('buy');
-    addToCart(slug, 1); // asegura que exista en el carrito
-    window.dispatchEvent(new Event('storage'));
+    addToCart(slug, 1);              // asegura que exista en el carrito
     toast('Listo, revisa tu carrito');
     router.push('/cart');
   }
