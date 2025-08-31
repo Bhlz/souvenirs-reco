@@ -1,6 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  images: { remotePatterns: [{ protocol: 'https', hostname: '**' }] },
+  images: {
+    remotePatterns: [
+      { protocol: 'https', hostname: 'images.unsplash.com' },
+      { protocol: 'https', hostname: 'upload.wikimedia.org' },
+      { protocol: 'https', hostname: 'turismo.guadalajaravisit.com' },
+    ],
+  },
   experimental: { optimizePackageImports: ['lucide-react'] },
 };
+
 export default nextConfig;

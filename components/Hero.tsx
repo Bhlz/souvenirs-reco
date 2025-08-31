@@ -8,13 +8,14 @@ export default function Hero() {
     <section className="relative h-screen overflow-hidden">
       {/* Contenedor de la imagen de fondo */}
       <div className="absolute inset-0 z-0">
-        <Image 
-          src="/logos/Portadasouvenirsgreco.jpg" 
-          alt="Souvenirs mexicanos de fondo" 
-          fill 
-          priority 
-          className="object-cover" 
-        />
+       <Image
+  src="/logos/LogosouvenirsGreco.jpg"  // ← existe
+  alt="Souvenirs mexicanos de fondo"
+  fill
+  priority
+  className="object-cover"
+/>
+
       </div>
 
       {/* ESTE ES EL CONTENEDOR PRINCIPAL QUE DEBES MODIFICAR.
