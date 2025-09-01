@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 const QA = [
   { q: '¿Cuánto tarda el envío?', a: 'Entre 24 y 72 horas hábiles según tu código postal. Mostramos estimado al pagar.' },
-  { q: '¿Tienen devoluciones?', a: 'Sí, 30 días sin preguntas. Te devolvemos tu dinero o cambiamos el producto.' },
+  { q: '¿Los productos son auténticos?', a: 'Sí, todos nuestros artículos son 100% artesanales y hechos por artesanos de México, garantizando calidad y originalidad.' },
   { q: '¿Puedo facturar?', a: 'Sí, al finalizar tu compra podrás cargar tus datos fiscales para factura.' },
   { q: '¿Qué métodos de pago aceptan?', a: 'Tarjetas de crédito y débito, MSI en campañas, SPEI, OXXO Pay y PayPal.' },
 ];

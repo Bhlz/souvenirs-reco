@@ -31,7 +31,7 @@ export default function Footer() {
             <div className="font-bold">Ayuda</div>
             <ul className="mt-2 space-y-2 text-sm text-neutral-600">
               <li><a className="hover:underline" href="/envios">Envíos</a></li>
-              <li><a className="hover:underline" href="/devoluciones">Devoluciones</a></li>
+              <li><a className="hover:underline" href="/devoluciones">Metodos de pago</a></li>
               <li><a className="hover:underline" href="/contacto">Contacto</a></li>
             </ul>
           </div>
