@@ -42,7 +42,7 @@ export default function Hero() {
           </div>
           <ul className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-neutral-600">
             <li className="flex flex-col items-center gap-2"><Truck className="h-5 w-5 text-brand" /> Envío 24–72h</li>
-            <li className="flex flex-col items-center gap-2"><ShieldCheck className="h-5 w-5 text-brand" /> Devoluciones 30 días</li>
+            <li className="flex flex-col items-center gap-2"><ShieldCheck className="h-5 w-5 text-brand" /> Calidad Garantizada</li>
             <li className="flex flex-col items-center gap-2"><CreditCard className="h-5 w-5 text-brand" /> Tarjetas, MSI, SPEI, OXXO</li>
           </ul>
         </div>
