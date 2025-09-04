@@ -11,25 +11,32 @@ import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { toast } from '@/lib/toast';
 
-type Prod = { slug: string; name: string; price: number; images: string[] };
-type CartItem = { slug: string; qty: number };
+// Nota: añadimos variantPriceMap y options opcionales para admitir variantes
+type Prod = {
+  slug: string;
+  name: string;
+  price: number;
+  images: string[];
+  variantPriceMap?: Record<string, number>;
+};
+type CartItem = { slug: string; qty: number; options?: Record<string, string> };
 
-// ---------- Ajustes de negocio (fáciles de cambiar) ----------
+// ---------- Ajustes de negocio ----------
 const FREE_SHIP_THRESHOLD = 999; // MXN para envío gratis
 const IVA_RATE = 0.16;           // IVA (solo para desglose visual)
 const SHIPPING_OPTIONS = [
-  { id: 'pickup',   label: 'Recoger en tienda',        cost: 0,  eta: 'Hoy mismo' },
-  { id: 'standard', label: 'Envío estándar (2–5 días)', cost: 99, eta: '2–5 días' },
-  { id: 'express',  label: 'Envío express (1–2 días)',  cost: 169, eta: '1–2 días' },
+  { id: 'pickup',   label: 'Recoger en tienda',          cost: 0,   eta: 'Hoy mismo' },
+  { id: 'standard', label: 'Envío estándar (2–5 días)',  cost: 99,  eta: '2–5 días' },
+  { id: 'express',  label: 'Envío express (1–2 días)',   cost: 169, eta: '1–2 días' },
 ] as const;
 
-// Códigos demo de cupón (puedes validarlos en backend luego)
+// Códigos demo de cupón
 const COUPONS: Record<string, { type: 'percent' | 'fixed'; value: number }> = {
   NOWYA10: { type: 'percent', value: 10 }, // 10% off
   HOLA50:  { type: 'fixed', value: 50 },   // -$50 MXN
 };
 
-// ---------- Guardados para después (localStorage simple) ----------
+// ---------- Guardados para después (localStorage) ----------
 const SAVED_KEY = 'souvenirs_saved_v1';
 function getSaved(): CartItem[] {
   if (typeof window === 'undefined') return [];
@@ -40,39 +47,55 @@ function setSaved(items: CartItem[]) {
   localStorage.setItem(SAVED_KEY, JSON.stringify(items));
   try { window.dispatchEvent(new Event('cartchange')); } catch {}
 }
-function moveToSaved(slug: string) {
-  const cart = getCart();
-  const idx = cart.findIndex(x => x.slug === slug);
+function moveToSaved(slug: string, options?: Record<string,string>) {
+  const cart = getCart() as CartItem[];
+  const idx = cart.findIndex(x => x.slug === slug && JSON.stringify(x.options||{}) === JSON.stringify(options||{}));
   if (idx === -1) return;
   const item = cart[idx];
-  // quitar del carrito
   cart.splice(idx, 1);
-  // añadir a guardados (merge qty si existe)
+
   const saved = getSaved();
-  const j = saved.findIndex(x => x.slug === slug);
+  const j = saved.findIndex(x => x.slug === slug && JSON.stringify(x.options||{}) === JSON.stringify(options||{}));
   if (j >= 0) saved[j].qty += item.qty; else saved.push(item);
   setSaved(saved);
-  // reflejar en carrito
+
   localStorage.setItem('souvenirs_cart_v1', JSON.stringify(cart));
   try { window.dispatchEvent(new Event('cartchange')); } catch {}
   toast('Guardado para después');
 }
-function moveToCartFromSaved(slug: string) {
+function moveToCartFromSaved(slug: string, options?: Record<string,string>) {
   const saved = getSaved();
-  const j = saved.findIndex(x => x.slug === slug);
+  const j = saved.findIndex(x => x.slug === slug && JSON.stringify(x.options||{}) === JSON.stringify(options||{}));
   if (j === -1) return;
   const item = saved[j];
-  // quitar de guardados
   saved.splice(j, 1);
   setSaved(saved);
-  // agregar al carrito
-  addToCart(slug, item.qty);
+  // si lib/cart soporta options: tercer argumento; si no, lo ignora sin romper
+  (addToCart as any)(slug, item.qty, item.options);
   toast('Movido al carrito');
+}
+
+// ---------- Helpers ----------
+const currency = (n: number) => n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+
+function unitPrice(p?: Prod, options?: Record<string,string>) {
+  if (!p) return 0;
+  if (!options || !p.variantPriceMap) return p.price;
+  const entries = Object.entries(options).sort(([a],[b]) => a.localeCompare(b));
+  const exactKey = entries.map(([k,v]) => `${k}:${v}`).join('|');
+  if (p.variantPriceMap[exactKey] != null) return p.variantPriceMap[exactKey];
+
+  // fallback: si hay precio por primer atributo
+  if (entries.length > 0) {
+    const firstKey = `${entries[0][0]}:${entries[0][1]}`;
+    if (p.variantPriceMap[firstKey] != null) return p.variantPriceMap[firstKey];
+  }
+  return p.price;
 }
 
 // ---------- Componente ----------
 export default function CartPage() {
-  const [items, setItems] = useState<CartItem[]>(getCart());
+  const [items, setItems] = useState<CartItem[]>(getCart() as CartItem[]);
   const [saved, setSavedState] = useState<CartItem[]>(getSaved());
   const [loading, setLoading] = useState(false);
   const [billing, setBilling] = useState({ name: '', email: '', rfc: '' });
@@ -83,7 +106,7 @@ export default function CartPage() {
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
 
   const refresh = () => {
-    setItems(getCart());
+    setItems(getCart() as CartItem[]);
     setSavedState(getSaved());
   };
 
@@ -104,18 +127,15 @@ export default function CartPage() {
   }, []);
 
   const prodBySlug = useMemo(
-    () => Object.fromEntries(products.map(p => [p.slug, p])),
+    () => Object.fromEntries(products.map(p => [p.slug, p] as const)),
     [products]
   );
 
-  const currency = (n: number) =>
-    n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
-
-  // Subtotal
+  // Subtotal (usa precio por variante cuando exista)
   const subtotal = useMemo(
     () => items.reduce((acc, it) => {
       const p = prodBySlug[it.slug] as Prod | undefined;
-      return acc + (p?.price || 0) * it.qty;
+      return acc + unitPrice(p, it.options) * it.qty;
     }, 0),
     [items, prodBySlug]
   );
@@ -130,11 +150,10 @@ export default function CartPage() {
     const rule = COUPONS[appliedCoupon.toUpperCase()];
     if (!rule) return 0;
     if (rule.type === 'percent') return Math.round((subtotal * rule.value) * 0.01);
-    return Math.min(subtotal, rule.value); // fijo
+    return Math.min(subtotal, rule.value);
   }, [appliedCoupon, subtotal]);
 
   const total = Math.max(0, subtotal - discount) + shippingCost;
-
   const empty = items.length === 0;
 
   // Upsell: productos que no están en el carrito (primeros 4)
@@ -160,21 +179,21 @@ export default function CartPage() {
     toast('Cupón eliminado');
   }
 
-  function inc(slug: string) {
-    addToCart(slug, 1);
+  // Wrappers que intentan pasar options si tu lib/cart ya lo soporta
+  const inc = (slug: string, options?: Record<string,string>) => {
+    (addToCart as any)(slug, 1, options);
     refresh();
-  }
-
-  function dec(slug: string) {
-    decrementFromCart(slug);
+  };
+  const dec = (slug: string, options?: Record<string,string>) => {
+    (decrementFromCart as any)(slug, 1, options);
     refresh();
-  }
-
-  function removeLine(slug: string) {
+  };
+  const removeLine = (slug: string /*, options?: Record<string,string>*/) => {
+    // Si tu lib/cart soporta remove por options, cámbialo aquí. Si no, remueve por slug.
     removeFromCart(slug);
     refresh();
     toast('Producto eliminado');
-  }
+  };
 
   async function payMP() {
     try {
@@ -185,7 +204,6 @@ export default function CartPage() {
         body: JSON.stringify({
           items,
           billing,
-          // Enviar resumen por si quieres calcular shipping/discount server-side
           pricing: { subtotal, discount, shipping: shippingCost, total, coupon: appliedCoupon },
         }),
       });
@@ -200,7 +218,7 @@ export default function CartPage() {
     }
   }
 
-  // Barra para envío gratis
+  // Barra envío gratis
   const freeShipProgress = Math.min(subtotal / FREE_SHIP_THRESHOLD, 1);
   const missingForFree = Math.max(0, FREE_SHIP_THRESHOLD - subtotal);
 
@@ -253,14 +271,16 @@ export default function CartPage() {
 
             {items.map((it) => {
               const p = prodBySlug[it.slug] as Prod | undefined;
-              const lineTotal = (p?.price || 0) * it.qty;
+              const uPrice = unitPrice(p, it.options);
+              const lineTotal = uPrice * it.qty;
+              const key = `${it.slug}-${JSON.stringify(it.options || {})}`;
 
               return (
-                <div key={it.slug} className="card flex flex-col gap-4 sm:flex-row sm:items-center">
+                <div key={key} className="card flex flex-col gap-4 sm:flex-row sm:items-center">
                   <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl border">
                     {p ? (
                       <Image
-                        src={p.images?.[0] || '/logos/visa.svg'}
+                        src={(p.images?.[0] && p.images[0].trim() !== '' ? p.images[0] : '/logos/LogosouvenirsGreco.jpg')}
                         alt={p?.name || it.slug}
                         fill
                         className="object-cover"
@@ -270,9 +290,20 @@ export default function CartPage() {
 
                   <div className="flex-1">
                     <div className="font-medium">{p?.name || it.slug}</div>
+
+                    {/* Opciones seleccionadas (variantes) */}
+                    {it.options && Object.keys(it.options).length > 0 && (
+                      <div className="mt-0.5 text-xs text-neutral-600">
+                        {Object.entries(it.options).map(([k, v]) => (
+                          <span key={k} className="mr-2">{k}: <strong>{v}</strong></span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Precio unitario */}
                     {p && (
                       <div className="mt-0.5 text-xs text-neutral-600">
-                        {currency(p.price)} c/u
+                        {currency(uPrice)} c/u
                       </div>
                     )}
 
@@ -280,7 +311,7 @@ export default function CartPage() {
                     <div className="mt-3 flex w-full items-center gap-2">
                       <button
                         className="btn"
-                        onClick={() => dec(it.slug)}
+                        onClick={() => dec(it.slug, it.options)}
                         aria-label="Disminuir"
                         title="Disminuir"
                       >
@@ -292,19 +323,21 @@ export default function CartPage() {
                         inputMode="numeric"
                         onChange={(e) => {
                           const v = Math.max(0, Math.min(999, Number(e.target.value) || 0));
-                          if (v === 0) removeLine(it.slug);
+                          if (v === 0) removeLine(it.slug /*, it.options*/);
                           else {
-                            // ajustar a la cantidad exacta
                             const current = it.qty;
-                            if (v > current) addToCart(it.slug, v - current);
-                            if (v < current) for (let k = 0; k < current - v; k++) decrementFromCart(it.slug);
+                            if (v > current) (addToCart as any)(it.slug, v - current, it.options);
+                            if (v < current) {
+                              const times = current - v;
+                              for (let k = 0; k < times; k++) (decrementFromCart as any)(it.slug, 1, it.options);
+                            }
                             refresh();
                           }
                         }}
                       />
                       <button
                         className="btn"
-                        onClick={() => inc(it.slug)}
+                        onClick={() => inc(it.slug, it.options)}
                         aria-label="Aumentar"
                         title="Aumentar"
                       >
@@ -312,10 +345,10 @@ export default function CartPage() {
                       </button>
 
                       <div className="ml-auto flex items-center gap-3">
-                        <button className="text-sm underline" onClick={() => { moveToSaved(it.slug); refresh(); }}>
+                        <button className="text-sm underline" onClick={() => { moveToSaved(it.slug, it.options); refresh(); }}>
                           Guardar para después
                         </button>
-                        <button className="text-sm text-red-600 underline" onClick={() => removeLine(it.slug)}>
+                        <button className="text-sm text-red-600 underline" onClick={() => removeLine(it.slug /*, it.options*/)}>
                           Eliminar
                         </button>
                       </div>
@@ -339,11 +372,11 @@ export default function CartPage() {
                   {saved.map(s => {
                     const p = prodBySlug[s.slug] as Prod | undefined;
                     return (
-                      <div key={s.slug} className="flex items-center gap-3">
+                      <div key={`${s.slug}-${JSON.stringify(s.options||{})}`} className="flex items-center gap-3">
                         <div className="relative h-14 w-14 overflow-hidden rounded-lg border">
                           {p ? (
                             <Image
-                              src={p.images?.[0] || '/logos/visa.svg'}
+                              src={(p.images?.[0] && p.images[0].trim() !== '' ? p.images[0] : '/logos/LogosouvenirsGreco.jpg')}
                               alt={p?.name || s.slug}
                               fill
                               className="object-cover"
@@ -352,9 +385,14 @@ export default function CartPage() {
                         </div>
                         <div className="flex-1">
                           <div className="text-sm font-medium">{p?.name || s.slug}</div>
-                          {p && <div className="text-xs text-neutral-600">{currency(p.price)} c/u</div>}
+                          {s.options && Object.keys(s.options).length > 0 && (
+                            <div className="text-xs text-neutral-600">
+                              {Object.entries(s.options).map(([k,v])=>(<span key={k} className="mr-2">{k}: <strong>{v}</strong></span>))}
+                            </div>
+                          )}
+                          {p && <div className="text-xs text-neutral-600">{currency(unitPrice(p, s.options))} c/u</div>}
                         </div>
-                        <button className="btn" onClick={() => moveToCartFromSaved(s.slug)}>
+                        <button className="btn" onClick={() => moveToCartFromSaved(s.slug, s.options)}>
                           Mover al carrito
                         </button>
                       </div>
@@ -373,7 +411,7 @@ export default function CartPage() {
                     <div key={u.slug} className="rounded-xl border p-3">
                       <div className="relative mb-2 h-28 w-full overflow-hidden rounded-lg">
                         <Image
-                          src={u.images?.[0] || '/logos/visa.svg'}
+                          src={(u.images?.[0] && u.images[0].trim() !== '' ? u.images[0] : '/logos/LogosouvenirsGreco.jpg')}
                           alt={u.name}
                           fill
                           className="object-cover"
@@ -381,7 +419,10 @@ export default function CartPage() {
                       </div>
                       <div className="line-clamp-2 text-sm font-medium">{u.name}</div>
                       <div className="mt-1 text-sm text-neutral-700">{currency(u.price)}</div>
-                      <button className="btn-primary mt-3 w-full" onClick={() => { addToCart(u.slug, 1); refresh(); toast('Agregado'); }}>
+                      <button
+                        className="btn-primary mt-3 w-full"
+                        onClick={() => { (addToCart as any)(u.slug, 1); refresh(); toast('Agregado'); }}
+                      >
                         Agregar
                       </button>
                     </div>
@@ -392,7 +433,7 @@ export default function CartPage() {
           </div>
 
           {/* --------- Aside / Resumen --------- */}
-          <aside className="card h-max sticky top-4">
+          <aside className="card sticky top-4 h-max">
             <div className="text-lg font-bold">Resumen</div>
 
             {/* Cupón */}
@@ -517,6 +558,16 @@ export default function CartPage() {
               <div>¿Dudas? <a href="/ayuda" className="underline">Centro de ayuda</a> · <a href="/devoluciones" className="underline">Devoluciones</a></div>
             </div>
           </aside>
+        </div>
+      )}
+
+      {/* Barra fija inferior (solo móvil) */}
+      {!empty && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-white/90 p-3 backdrop-blur md:hidden">
+          <div className="container flex items-center justify-between">
+            <div className="text-lg font-bold">{currency(total)}</div>
+            <button className="btn-primary" onClick={payMP}>Pagar ahora</button>
+          </div>
         </div>
       )}
     </div>

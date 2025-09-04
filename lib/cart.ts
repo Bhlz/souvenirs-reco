@@ -1,6 +1,6 @@
 'use client';
 
-export type CartItem = { slug: string; qty: number };
+export type CartItem = { slug: string; qty: number; options?: Record<string,string> };
 const KEY = 'souvenirs_cart_v1';
 
 function safeParse(str: string | null): CartItem[] {
@@ -42,15 +42,14 @@ export function setCart(items: CartItem[]) {
   emitAll(oldValue, newValue, items);
 }
 
-export function addToCart(slug: string, qty = 1) {
+export function addToCart(slug: string, qty = 1, options?: Record<string,string>) {
   const cart = getCart();
-  const i = cart.findIndex(x => x.slug === slug);
-  if (i >= 0) cart[i].qty += qty; else cart.push({ slug, qty });
+  const key = JSON.stringify({ slug, options: options ?? {} });
+  // buscar línea “igual” (slug + mismas opciones)
+  const i = cart.findIndex(x => JSON.stringify({ slug: x.slug, options: x.options ?? {} }) === key);
+  if (i >= 0) cart[i].qty += qty; else cart.push({ slug, qty, options });
   setCart(cart);
-  // Efecto de vibración del carrito al añadir
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new Event('cart:bump'));
-  }
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('cart:bump'));
 }
 
 export function decrementFromCart(slug: string, qty = 1) {

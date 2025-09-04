@@ -19,18 +19,22 @@
       "stock": 12,
       "variants": [
         {
-          "name": "Variante",
-          "values": [
-            "Chico",
-            "Mediano",
-            "Grande"
-          ]
+          "name": "Tamaño",
+          "values": ["Chico", "Mediano", "Grande"]
+        },
+        {
+          "name": "Color",
+          "values": ["Natural", "Multicolor"]
         }
       ],
-      "bundleSkus": [
-        "taza-talavera",
-        "rebozo-artesanal"
-      ]
+      "variantPriceMap": {
+        "Tamaño:Chico": 699,
+        "Tamaño:Mediano": 749,
+        "Tamaño:Grande": 899,
+        "Tamaño:Mediano|Color:Multicolor": 769,
+        "Tamaño:Grande|Color:Multicolor": 919
+      },
+      "bundleSkus": ["taza-talavera", "rebozo-artesanal"]
     },
     {
       "slug": "rebozo-artesanal",
@@ -45,6 +49,17 @@
       "category": "Moda",
       "description": "Tejido en telar de cintura, suave y resistente. Incluye bolsa protectora.",
       "stock": 7,
+      "variants": [
+        {
+          "name": "Color",
+          "values": ["Azul", "Rojo", "Negro"]
+        }
+      ],
+      "variantPriceMap": {
+        "Color:Azul": 899,
+        "Color:Rojo": 919,
+        "Color:Negro": 899
+      },
       "bundleSkus": []
     },
     {
@@ -58,13 +73,24 @@
       "reviews": 54,
       "category": "Moda",
       "description": "Hecho a mano, materiales premium. Talla ajustable.",
-      "stock": 5
+      "stock": 5,
+      "variants": [
+        {
+          "name": "Tamaño",
+          "values": ["Chico", "Mediano", "Grande"]
+        }
+      ],
+      "variantPriceMap": {
+        "Tamaño:Chico": 1099,
+        "Tamaño:Mediano": 1199,
+        "Tamaño:Grande": 1399
+      }
     },
     {
       "slug": "dsa",
       "name": "dsa",
       "price": 12,
-      "images": [],
+      "images": ["/logos/LogosouvenirsGreco.jpg"],
       "rating": 5,
       "reviews": 0,
       "category": "21",
@@ -76,7 +102,7 @@
       "slug": "21",
       "name": "12",
       "price": 1,
-      "images": [],
+      "images": ["/logos/LogosouvenirsGreco.jpg"],
       "rating": 5,
       "reviews": 0,
       "category": "21",

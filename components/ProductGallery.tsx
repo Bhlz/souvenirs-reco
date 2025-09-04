@@ -1,4 +1,5 @@
 'use client';
+
 import { useEffect, useRef, useState } from 'react';
 import SafeImage from '@/components/SafeImage';
 
@@ -74,15 +75,27 @@ export default function ProductGallery({
 
         {imgs.length > 1 && (
           <>
-            <button onClick={prev} aria-label="Anterior" className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/90 px-3 py-2 shadow">‹</button>
-            <button onClick={next} aria-label="Siguiente" className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/90 px-3 py-2 shadow">›</button>
+            <button
+              onClick={prev}
+              aria-label="Anterior"
+              className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/90 px-3 py-2 shadow"
+            >
+              ‹
+            </button>
+            <button
+              onClick={next}
+              aria-label="Siguiente"
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/90 px-3 py-2 shadow"
+            >
+              ›
+            </button>
           </>
         )}
 
         {imgs.length > 1 && (
           <div className="pointer-events-none absolute bottom-3 left-0 right-0 flex justify-center gap-1">
             {imgs.map((_, i) => (
-              <span key={i} className={`h-1.5 w-1.5 rounded-full ${i===idx ? 'bg-white' : 'bg-white/60'}`} />
+              <span key={i} className={`h-1.5 w-1.5 rounded-full ${i === idx ? 'bg-white' : 'bg-white/60'}`} />
             ))}
           </div>
         )}
@@ -94,7 +107,7 @@ export default function ProductGallery({
             <button
               key={i}
               onClick={() => goTo(i)}
-              className={`relative aspect-square overflow-hidden rounded-xl border ${i===idx ? 'ring-2 ring-black' : ''}`}
+              className={`relative aspect-square overflow-hidden rounded-xl border ${i === idx ? 'ring-2 ring-black' : ''}`}
             >
               <SafeImage
                 src={src}

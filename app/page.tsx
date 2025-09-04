@@ -3,8 +3,8 @@ import Collections from '@/components/Collections';
 import ReviewsUGC from '@/components/ReviewsUGC';
 import Benefits from '@/components/Benefits';
 import Story from '@/components/Story';
+import LocationSection from '@/components/LocationSection';
 import FAQ from '@/components/FAQ';
-
 import ProductGrid from '@/components/ProductGrid';
 import { getAllProducts } from '@/lib/store';
 import Reveal from '@/components/ui/Reveal';
@@ -17,7 +17,11 @@ export default async function Page() {
       <Hero/>
 
       {/* Catálogo con fondo e interacciones */}
-      <section id="catalogo" className="relative overflow-hidden py-16">
+      <section
+        id="catalogo"
+        aria-label="Catálogo"
+        className="relative overflow-hidden py-16 scroll-mt-28 md:scroll-mt-36"
+      >
         {/* Fondo: tu imagen local en public/uploads/fondo-catalogo.png */}
         <div className="absolute inset-0 -z-20 bg-[url('/uploads/fondo-catalogo.png')] bg-cover bg-center bg-fixed" />
 
@@ -31,9 +35,7 @@ export default async function Page() {
 
         <div className="container">
           <Reveal>
-            <h2 className="mb-2 text-3xl font-extrabold tracking-tight">
-              Catálogo
-            </h2>
+            <h2 className="mb-2 text-3xl font-extrabold tracking-tight">Catálogo</h2>
             {/* Subrayado animado */}
             <div className="mb-6 h-[3px] w-24 rounded-full bg-gradient-to-r from-pink-500 via-indigo-500 to-emerald-500 animate-pulse" />
           </Reveal>
@@ -52,6 +54,7 @@ export default async function Page() {
       <ReviewsUGC/>
       <Benefits/>
       <Story/>
+      <LocationSection/>
       <FAQ/>
     </>
   );
