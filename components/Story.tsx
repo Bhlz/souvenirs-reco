@@ -3,7 +3,8 @@
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 
-const BG_SRC = '/uploads/fondo-page.png'; // ← pon tu imagen aquí (public/uploads/story-bg.jpg)
+
+const BG_SRC = '/uploads/fondodestory.png'; // ← pon tu imagen aquí (public/uploads/story-bg.jpg)
 
 export default function Story() {
   const [visibleElements, setVisibleElements] = useState<Set<string>>(new Set());
