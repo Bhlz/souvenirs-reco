@@ -2,11 +2,11 @@ import Image from 'next/image';
 
 export default function Footer() {
   const methods = [
-    { src: '/logos/visa.svg',         alt: 'Visa' },
-    { src: '/logos/mastercard.svg',   alt: 'Mastercard' },
-    { src: '/logos/oxxo.svg',         alt: 'OXXO Pay' },
-    { src: '/logos/spei.svg',         alt: 'SPEI' },
-    { src: '/logos/paypal.svg',       alt: 'PayPal' },
+    { src: 'https://1000marcas.net/wp-content/uploads/2019/12/VISA-Logo.png',         alt: 'Visa' },
+    { src: 'https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg',   alt: 'Mastercard' },
+    { src: 'https://1000marcas.net/wp-content/uploads/2022/02/OXXO-Logo.png',         alt: 'OXXO Pay' },
+    { src: 'https://cdn.worldvectorlogo.com/logos/spei-1.svg',         alt: 'SPEI' },
+    { src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/PayPal.svg/2560px-PayPal.svg.png',       alt: 'PayPal' },
   ];
 
   return (
