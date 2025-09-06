@@ -196,10 +196,9 @@ export default function CartPage() {
   };
 
 async function payMP() {
-  if (loading) return; // evita doble click
+  if (loading) return;
   setLoading(true);
 
-  // timeout suave (20s)
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), 20000);
 
@@ -216,8 +215,9 @@ async function payMP() {
     });
 
     if (!res.ok) {
-      const msg = await res.text().catch(()=>'');
-      throw new Error(`MP error (${res.status}): ${msg || 'sin detalle'}`);
+      const text = await res.text().catch(() => '');
+      console.error('MP /api error:', res.status, text);
+      throw new Error(text || `HTTP ${res.status}`);
     }
 
     const data = await res.json().catch(() => ({}));
@@ -225,15 +225,14 @@ async function payMP() {
     if (!url) throw new Error('MP: init_point vacío');
 
     toast('Redirigiendo al pago…');
-    // Usar assign evita crear un entry de historia “rara” en algunos navegadores
     window.location.assign(url);
   } catch (err: any) {
-    if (err?.name === 'AbortError') {
-      alert('La solicitud tardó demasiado. Intenta de nuevo.');
-    } else {
-      console.error(err);
-      alert('Error al iniciar pago. Revisa tu token de Mercado Pago en .env.local');
-    }
+    console.error(err);
+    alert(
+      `Error al iniciar pago.\n` +
+      `Detalle: ${err?.message || err}\n` +
+      `Verifica MP_ACCESS_TOKEN en .env/Vercel y revisa logs de /api/checkout/mp`
+    );
   } finally {
     clearTimeout(t);
     setLoading(false);
