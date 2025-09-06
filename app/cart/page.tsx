@@ -195,28 +195,51 @@ export default function CartPage() {
     toast('Producto eliminado');
   };
 
-  async function payMP() {
-    try {
-      setLoading(true);
-      const res = await fetch('/api/checkout/mp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items,
-          billing,
-          pricing: { subtotal, discount, shipping: shippingCost, total, coupon: appliedCoupon },
-        }),
-      });
-      if (!res.ok) throw new Error('MP error');
-      const data = await res.json();
-      toast('Redirigiendo al pago…');
-      window.location.href = data.init_point;
-    } catch {
-      alert('Error al iniciar pago. Revisa tu token de Mercado Pago en .env.local');
-    } finally {
-      setLoading(false);
+async function payMP() {
+  if (loading) return; // evita doble click
+  setLoading(true);
+
+  // timeout suave (20s)
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 20000);
+
+  try {
+    const res = await fetch('/api/checkout/mp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: ctrl.signal,
+      body: JSON.stringify({
+        items,
+        billing,
+        pricing: { subtotal, discount, shipping: shippingCost, total, coupon: appliedCoupon },
+      }),
+    });
+
+    if (!res.ok) {
+      const msg = await res.text().catch(()=>'');
+      throw new Error(`MP error (${res.status}): ${msg || 'sin detalle'}`);
     }
+
+    const data = await res.json().catch(() => ({}));
+    const url = data.init_point || data.sandbox_init_point;
+    if (!url) throw new Error('MP: init_point vacío');
+
+    toast('Redirigiendo al pago…');
+    // Usar assign evita crear un entry de historia “rara” en algunos navegadores
+    window.location.assign(url);
+  } catch (err: any) {
+    if (err?.name === 'AbortError') {
+      alert('La solicitud tardó demasiado. Intenta de nuevo.');
+    } else {
+      console.error(err);
+      alert('Error al iniciar pago. Revisa tu token de Mercado Pago en .env.local');
+    }
+  } finally {
+    clearTimeout(t);
+    setLoading(false);
   }
+}
+
 
   // Barra envío gratis
   const freeShipProgress = Math.min(subtotal / FREE_SHIP_THRESHOLD, 1);
