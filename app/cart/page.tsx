@@ -189,7 +189,7 @@ export default function CartPage() {
     refresh();
   };
   const removeLine = (slug: string /*, options?: Record<string,string>*/) => {
-    // Si tu lib/cart soporta remove por options, cámbialo aquí. Si no, remueve por slug.
+    // Si tu lib/cart soporta remove por options, cámbialo aquí. Si no, remueve por slug s.
     removeFromCart(slug);
     refresh();
     toast('Producto eliminado');
