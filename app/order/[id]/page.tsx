@@ -16,14 +16,20 @@ function currency(n: number) {
   return n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 }
 
-export default function OrderPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+// Nota: Tipado relajado para compatibilidad con Next 15 (params puede ser Promise en PageProps)
+export default function OrderPage({ params }: any) {
+  // En runtime, Next te pasa un objeto { id: string }, así que accedemos de forma defensiva:
+  const id: string | undefined = params?.id;
 
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Intenta API y después localStorage
   useEffect(() => {
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+
     let active = true;
     (async () => {
       try {
@@ -43,6 +49,7 @@ export default function OrderPage({ params }: { params: { id: string } }) {
         if (active) setLoading(false);
       }
     })();
+
     return () => { active = false; };
   }, [id]);
 
@@ -50,6 +57,15 @@ export default function OrderPage({ params }: { params: { id: string } }) {
     () => (order?.items || []).reduce((s, it) => s + it.price * it.qty, 0),
     [order]
   );
+
+  if (!id) {
+    return (
+      <div className="container py-16">
+        <h1 className="text-2xl font-bold">Pedido</h1>
+        <p className="mt-2 text-neutral-600">Falta el ID de la orden en la URL.</p>
+      </div>
+    );
+  }
 
   if (loading) {
     return <div className="container py-16">Cargando pedido…</div>;
