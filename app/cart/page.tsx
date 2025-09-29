@@ -198,35 +198,54 @@ export default function CartPage() {
 
   // ======= NUEVO: ordenar por WhatsApp =======
   async function orderByWhatsapp() {
-    if (loading) return;
-    setLoading(true);
-    try {
-      const res = await fetch('/api/checkout/wsp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items,                      // [{ slug, qty, options? }]
-          billing,                    // { name, email, rfc? }
-          pricing: { subtotal, discount, shipping: shippingCost, total },
-        }),
-      });
+  if (loading) return;
+  setLoading(true);
+  try {
+    const res = await fetch('/api/checkout/wsp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        items,
+        billing,
+        pricing: { subtotal, discount, shipping: shippingCost, total },
+        shipping: {
+          id: selectedShipping.id,
+          label: selectedShipping.label,
+          cost: shippingCost,
+          eta: selectedShipping.eta,
+        },
+        coupon: appliedCoupon,
+      }),
+    });
 
-      if (!res.ok) {
-        const msg = await res.text().catch(() => '');
-        throw new Error(msg || `HTTP ${res.status}`);
-      }
-      const data = await res.json();
-      if (!data?.chatUrl) throw new Error('No se generó chatUrl');
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    if (!data?.chatUrl || !data?.orderId) throw new Error('Respuesta inválida');
 
-      toast('Abriendo WhatsApp…');
-      window.location.assign(data.chatUrl);
-    } catch (err: any) {
-      console.error(err);
-      alert('No se pudo generar el pedido por WhatsApp. Intenta de nuevo.');
-    } finally {
-      setLoading(false);
-    }
+    // Guarda un snapshot mínimo para /order/[id]
+    const snapshot = {
+      id: data.orderId,
+      items: items.map((it) => {
+        // Si quieres el nombre, también puedes guardarlo resolviéndolo con prodBySlug:
+        const p = prodBySlug[it.slug];
+        const unit = p ? (p.variantPriceMap ? /* si usas variantes */ (p.price) : p.price) : 0;
+        return { slug: p?.name || it.slug, qty: it.qty, price: unit };
+      }),
+      total,
+      status: 'pending',
+    };
+    localStorage.setItem(`order_snapshot_${data.orderId}`, JSON.stringify(snapshot));
+
+    toast('Abriendo WhatsApp…');
+    window.location.assign(data.chatUrl);
+  } catch (err) {
+    console.error(err);
+    alert('No se pudo generar el pedido por WhatsApp. Intenta de nuevo.');
+  } finally {
+    setLoading(false);
   }
+}
+
   // ===========================================
 
   // Barra envío gratis

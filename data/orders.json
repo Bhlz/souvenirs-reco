@@ -25,6 +25,138 @@
         },
         "channel": "whatsapp"
       }
+    },
+    {
+      "id": "c2b0393d-6a40-49c2-b624-bfa3ec2bdba7",
+      "preferenceId": "whatsapp:c2b0393d-6a40-49c2-b624-bfa3ec2bdba7",
+      "items": [
+        {
+          "slug": "alebrije-oaxaca",
+          "qty": 1,
+          "price": 749
+        },
+        {
+          "slug": "sombrero-charro",
+          "qty": 2,
+          "price": 1199
+        }
+      ],
+      "total": 3147,
+      "status": "pending",
+      "raw": {
+        "billing": {
+          "name": "",
+          "email": "",
+          "rfc": ""
+        },
+        "channel": "whatsapp",
+        "coupon": null,
+        "shipping": {
+          "id": "standard",
+          "label": "Envío estándar",
+          "cost": 0,
+          "eta": ""
+        }
+      }
+    },
+    {
+      "id": "cfa1cb18-6a67-4aba-8df3-da748cf145ac",
+      "preferenceId": "whatsapp:cfa1cb18-6a67-4aba-8df3-da748cf145ac",
+      "items": [
+        {
+          "slug": "alebrije-oaxaca",
+          "qty": 1,
+          "price": 749
+        },
+        {
+          "slug": "sombrero-charro",
+          "qty": 2,
+          "price": 1199
+        }
+      ],
+      "total": 3147,
+      "status": "pending",
+      "raw": {
+        "billing": {
+          "name": "",
+          "email": "",
+          "rfc": ""
+        },
+        "channel": "whatsapp",
+        "coupon": null,
+        "shipping": {
+          "id": "standard",
+          "label": "Envío estándar",
+          "cost": 0,
+          "eta": ""
+        }
+      }
+    },
+    {
+      "id": "24f7bcd1-7db0-4f4d-98a2-ba615c3ecbb3",
+      "preferenceId": "whatsapp:24f7bcd1-7db0-4f4d-98a2-ba615c3ecbb3",
+      "items": [
+        {
+          "slug": "alebrije-oaxaca",
+          "qty": 1,
+          "price": 749
+        },
+        {
+          "slug": "sombrero-charro",
+          "qty": 2,
+          "price": 1199
+        }
+      ],
+      "total": 3147,
+      "status": "pending",
+      "raw": {
+        "billing": {
+          "name": "",
+          "email": "",
+          "rfc": ""
+        },
+        "channel": "whatsapp",
+        "coupon": null,
+        "shipping": {
+          "id": "standard",
+          "label": "Envío estándar (2–5 días)",
+          "cost": 0,
+          "eta": "2–5 días"
+        }
+      }
+    },
+    {
+      "id": "bc069dc3-0634-4cda-bd91-e2e355d17f92",
+      "preferenceId": "whatsapp:bc069dc3-0634-4cda-bd91-e2e355d17f92",
+      "items": [
+        {
+          "slug": "alebrije-oaxaca",
+          "qty": 1,
+          "price": 749
+        },
+        {
+          "slug": "sombrero-charro",
+          "qty": 2,
+          "price": 1199
+        }
+      ],
+      "total": 3147,
+      "status": "pending",
+      "raw": {
+        "billing": {
+          "name": "",
+          "email": "",
+          "rfc": ""
+        },
+        "channel": "whatsapp",
+        "coupon": null,
+        "shipping": {
+          "id": "standard",
+          "label": "Envío estándar (2–5 días)",
+          "cost": 0,
+          "eta": "2–5 días"
+        }
+      }
     }
   ]
 }
