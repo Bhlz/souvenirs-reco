@@ -1,3 +1,4 @@
+// app/cart/page.tsx
 'use client';
 
 import {
@@ -195,50 +196,38 @@ export default function CartPage() {
     toast('Producto eliminado');
   };
 
-async function payMP() {
-  if (loading) return;
-  setLoading(true);
+  // ======= NUEVO: ordenar por WhatsApp =======
+  async function orderByWhatsapp() {
+    if (loading) return;
+    setLoading(true);
+    try {
+      const res = await fetch('/api/checkout/wsp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items,                      // [{ slug, qty, options? }]
+          billing,                    // { name, email, rfc? }
+          pricing: { subtotal, discount, shipping: shippingCost, total },
+        }),
+      });
 
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), 20000);
+      if (!res.ok) {
+        const msg = await res.text().catch(() => '');
+        throw new Error(msg || `HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      if (!data?.chatUrl) throw new Error('No se generó chatUrl');
 
-  try {
-    const res = await fetch('/api/checkout/mp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      signal: ctrl.signal,
-      body: JSON.stringify({
-        items,
-        billing,
-        pricing: { subtotal, discount, shipping: shippingCost, total, coupon: appliedCoupon },
-      }),
-    });
-
-    if (!res.ok) {
-      const text = await res.text().catch(() => '');
-      console.error('MP /api error:', res.status, text);
-      throw new Error(text || `HTTP ${res.status}`);
+      toast('Abriendo WhatsApp…');
+      window.location.assign(data.chatUrl);
+    } catch (err: any) {
+      console.error(err);
+      alert('No se pudo generar el pedido por WhatsApp. Intenta de nuevo.');
+    } finally {
+      setLoading(false);
     }
-
-    const data = await res.json().catch(() => ({}));
-    const url = data.init_point || data.sandbox_init_point;
-    if (!url) throw new Error('MP: init_point vacío');
-
-    toast('Redirigiendo al pago…');
-    window.location.assign(url);
-  } catch (err: any) {
-    console.error(err);
-    alert(
-      `Error al iniciar pago.\n` +
-      `Detalle: ${err?.message || err}\n` +
-      `Verifica MP_ACCESS_TOKEN en .env/Vercel y revisa logs de /api/checkout/mp`
-    );
-  } finally {
-    clearTimeout(t);
-    setLoading(false);
   }
-}
-
+  // ===========================================
 
   // Barra envío gratis
   const freeShipProgress = Math.min(subtotal / FREE_SHIP_THRESHOLD, 1);
@@ -543,8 +532,8 @@ async function payMP() {
               <div className="text-xs text-neutral-500">Impuestos incluidos donde aplique.</div>
             </div>
 
-            {/* Datos de facturación */}
-            <div className="mt-6 text-lg font-bold">Datos de facturación (opcional)</div>
+            {/* Datos de contacto/facturación */}
+            <div className="mt-6 text-lg font-bold">Datos (opcional)</div>
             <div className="mt-3 grid gap-2">
               <input
                 className="input"
@@ -554,7 +543,7 @@ async function payMP() {
               />
               <input
                 className="input"
-                placeholder="Email para factura"
+                placeholder="Email"
                 type="email"
                 value={billing.email}
                 onChange={e => setBilling({ ...billing, email: e.target.value })}
@@ -567,16 +556,17 @@ async function payMP() {
               />
             </div>
 
+            {/* === Botón principal: WhatsApp === */}
             <button
               className="btn-primary mt-4 w-full disabled:opacity-60"
               disabled={loading}
-              onClick={payMP}
+              onClick={orderByWhatsapp}
             >
-              {loading ? 'Redirigiendo…' : 'Pagar con Mercado Pago'}
+              {loading ? 'Abriendo WhatsApp…' : 'Ordenar por WhatsApp'}
             </button>
 
             <div className="mt-3 grid gap-1 text-xs text-neutral-500">
-              <div>Pago seguro procesado por Mercado Pago.</div>
+              <div>Te llevaremos a WhatsApp para confirmar la disponibilidad y finalizar tu pedido.</div>
               <div>¿Dudas? <a href="/ayuda" className="underline">Centro de ayuda</a> · <a href="/devoluciones" className="underline">Devoluciones</a></div>
             </div>
           </aside>
@@ -588,7 +578,9 @@ async function payMP() {
         <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-white/90 p-3 backdrop-blur md:hidden">
           <div className="container flex items-center justify-between">
             <div className="text-lg font-bold">{currency(total)}</div>
-            <button className="btn-primary" onClick={payMP}>Pagar ahora</button>
+            <button className="btn-primary" onClick={orderByWhatsapp}>
+              {loading ? 'Abriendo WhatsApp…' : 'Ordenar por WhatsApp'}
+            </button>
           </div>
         </div>
       )}

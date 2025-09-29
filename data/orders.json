@@ -1,3 +1,30 @@
 {
-  "orders": []
+  "orders": [
+    {
+      "id": "01ca143d-d98e-4393-a7ae-c3be11c5c362",
+      "preferenceId": "whatsapp:01ca143d-d98e-4393-a7ae-c3be11c5c362",
+      "items": [
+        {
+          "slug": "alebrije-oaxaca",
+          "qty": 1,
+          "price": 749
+        },
+        {
+          "slug": "sombrero-charro",
+          "qty": 2,
+          "price": 1199
+        }
+      ],
+      "total": 3147,
+      "status": "pending",
+      "raw": {
+        "billing": {
+          "name": "",
+          "email": "",
+          "rfc": ""
+        },
+        "channel": "whatsapp"
+      }
+    }
+  ]
 }
