@@ -129,7 +129,7 @@ export default function Header() {
             <Link href="/catalogo" className="transition-colors duration-200 hover:text-brand">Catálogo</Link>
             <a href="#colecciones" className="transition-colors duration-200 hover:text-brand">Colecciones</a>
             <a href="#opinion" className="transition-colors duration-200 hover:text-brand">Reseñas</a>
-            <a href="#faq" className="transition-colors duration-200 hover:text-brand">FAQ</a>
+            <a href="#faq" className="transition-colors duration-200 hover:text-brand">FAQ.</a>
           </nav>
 
           {/* Carrito con badge y vibración */}
