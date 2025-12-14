@@ -8,7 +8,7 @@ export default async function Collections() {
   const items = [...all].sort((a,b)=>(b.rating ?? 0) - (a.rating ?? 0)).slice(0,4);
 
   return (
-    <section id="destacados" className="relative overflow-hidden py-14">
+    <section id="colecciones" className="relative overflow-hidden py-14">
       <div className="absolute inset-0 -z-10 bg-[url('/uploads/fondo-productos.png')] bg-cover bg-center opacity-10" />
       <div className="container">
         <h2 className="section-title">Destacados</h2>
@@ -32,7 +32,7 @@ export default async function Collections() {
         </div>
 
         <div className="mt-6">
-          <a href="#catalogo" className="btn">Ver todo el catálogo</a>
+          <Link href="/catalogo" className="btn">Ver todo el catálogo</Link>
         </div>
       </div>
     </section>

@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function Footer() {
   const methods = [
@@ -10,7 +11,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="border-t">
+    <footer className="border-t" data-public="true">
       <div className="container py-10">
         <div className="grid gap-8 md:grid-cols-3">
           <div>
@@ -36,9 +37,12 @@ export default function Footer() {
             </ul>
           </div>
 
-          <div>
+          <div className="space-y-3">
             <div className="font-bold">Síguenos</div>
-            <p className="mt-2 text-sm text-neutral-600">Instagram · Facebook · TikTok</p>
+            <p className="text-sm text-neutral-600">Instagram · Facebook · TikTok</p>
+            <Link href="/admin" className="btn w-max text-sm">
+              Ir al dashboard
+            </Link>
           </div>
         </div>
 

@@ -2,10 +2,18 @@
 import useSWR from 'swr';
 import { useState } from 'react';
 
-const fetcher = (url: string) => fetch(url).then(r=>r.json());
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) {
+    let msg = 'Error al cargar órdenes';
+    try { const body = await res.json(); msg = body.error || msg; } catch { msg = await res.text(); }
+    throw new Error(msg || 'Error al cargar órdenes');
+  }
+  return res.json();
+};
 
 export default function AdminOrders() {
-  const { data, mutate } = useSWR('/api/admin/orders', fetcher);
+  const { data, mutate, error, isLoading } = useSWR('/api/admin/orders', fetcher);
   const orders = data?.orders || [];
   const [loadingId, setLoadingId] = useState<string| null>(null);
 
@@ -35,10 +43,14 @@ export default function AdminOrders() {
     mutate();
   }
 
+  if (error) return <div className="container py-10 text-red-600">{error.message}</div>;
+  if (isLoading) return <div className="container py-10">Cargando órdenes…</div>;
+
   return (
     <div className="container py-10">
       <h1 className="text-2xl font-bold">Órdenes</h1>
       <div className="mt-6 grid gap-4">
+        {orders.length === 0 && <div>No hay órdenes registradas.</div>}
         {orders.map((o: any) => (
           <div key={o.id} className="card">
             <div className="flex items-center justify-between">

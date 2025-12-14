@@ -4,7 +4,15 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import ImageUploader from '@/components/ImageUploader';
 
-const fetcher = (url: string) => fetch(url).then(r => r.json());
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) {
+    let msg = 'Error al cargar productos';
+    try { const body = await res.json(); msg = body.error || msg; } catch { msg = await res.text(); }
+    throw new Error(msg || 'Error al cargar productos');
+  }
+  return res.json();
+};
 
 export default function EditProduct() {
   const { slug } = useParams<{ slug: string }>();
@@ -34,7 +42,7 @@ export default function EditProduct() {
     }
   }, [product]);
 
-  if (error) return <div className="container py-10">Error cargando producto</div>;
+  if (error) return <div className="container py-10 text-red-600">{error.message}</div>;
   if (isLoading || (!form && !product)) return <div className="container py-10">Cargando...</div>;
   if (!slug) return <div className="container py-10">Slug inválido</div>;
   if (!product) return <div className="container py-10">Producto no encontrado</div>;

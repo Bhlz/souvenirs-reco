@@ -27,7 +27,7 @@ export default function FreeShippingBar() {
   const progress = Math.min(100, Math.round((amount / min) * 100));
 
   return (
-    <div className="bg-neutral-900 text-white">
+    <div className="bg-neutral-900 text-white" data-public="true">
       <div className="container py-2 text-sm">
         {missing > 0 ? (
           <div>

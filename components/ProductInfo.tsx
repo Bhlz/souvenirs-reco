@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { addToCart } from '@/lib/cart';
 import { toast } from '@/lib/toast';
 import type { Product } from '@/lib/types';
@@ -88,9 +89,7 @@ export default function ProductInfo({ p }: Props) {
         <button className="btn-primary" onClick={onAdd}>
           Añadir al carrito
         </button>
-        <a href="#catalogo" className="btn">
-          Seguir comprando
-        </a>
+        <Link href="/catalogo" className="btn">Seguir comprando</Link>
       </div>
 
       <div className="mt-6 space-y-2 text-sm text-neutral-700">

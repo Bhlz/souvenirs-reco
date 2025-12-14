@@ -98,11 +98,12 @@ export default function Header() {
   return (
     <>
       {/* Barra de envío gratuito */}
-      <div id="freeshipping-bar" className="w-full bg-blue-500 py-2 text-center text-white">
+      <div id="freeshipping-bar" data-public="true" className="w-full bg-blue-500 py-2 text-center text-white">
         Envío gratuito en pedidos de +$500
       </div>
 
       <header
+        data-public="true"
         ref={headerRef}
         className={[
           'z-50 border-b bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60',
@@ -125,6 +126,7 @@ export default function Header() {
 
           {/* Navegación */}
           <nav className="hidden gap-6 md:flex" aria-label="Main">
+            <Link href="/catalogo" className="transition-colors duration-200 hover:text-brand">Catálogo</Link>
             <a href="#colecciones" className="transition-colors duration-200 hover:text-brand">Colecciones</a>
             <a href="#opinion" className="transition-colors duration-200 hover:text-brand">Reseñas</a>
             <a href="#faq" className="transition-colors duration-200 hover:text-brand">FAQ</a>

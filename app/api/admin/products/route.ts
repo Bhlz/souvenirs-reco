@@ -7,9 +7,14 @@ function ensureAuth(req: NextRequest) {
   if (cookie !== '1') throw new Error('unauthorized');
 }
 
-export async function GET() {
-  const products = await getAllProducts();
-  return Response.json({ products });
+export async function GET(req: NextRequest) {
+  try {
+    ensureAuth(req);
+    const products = await getAllProducts();
+    return Response.json({ products });
+  } catch {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -20,7 +25,7 @@ export async function POST(req: NextRequest) {
     await setProduct(p);
     return Response.json({ ok: true });
   } catch {
-    return new Response('Unauthorized', { status: 401 });
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 }
 
@@ -31,7 +36,7 @@ export async function PUT(req: NextRequest) {
     await setProduct(p);
     return Response.json({ ok: true });
   } catch {
-    return new Response('Unauthorized', { status: 401 });
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 }
 
@@ -43,6 +48,6 @@ export async function DELETE(req: NextRequest) {
     await deleteProduct(slug);
     return Response.json({ ok: true });
   } catch {
-    return new Response('Unauthorized', { status: 401 });
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 }

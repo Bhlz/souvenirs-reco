@@ -223,6 +223,82 @@
           "eta": "2–5 días"
         }
       }
+    },
+    {
+      "id": "949b62da-ce80-4cf2-b20d-88d8d9f122ae",
+      "preferenceId": "whatsapp:949b62da-ce80-4cf2-b20d-88d8d9f122ae",
+      "items": [
+        {
+          "slug": "alebrije-oaxaca",
+          "qty": 1,
+          "price": 749
+        },
+        {
+          "slug": "sombrero-charro",
+          "qty": 2,
+          "price": 1199
+        }
+      ],
+      "total": 3147,
+      "status": "pending",
+      "raw": {
+        "billing": {
+          "name": "",
+          "email": "",
+          "rfc": ""
+        },
+        "channel": "whatsapp",
+        "coupon": null,
+        "shipping": {
+          "id": "standard",
+          "label": "Envío estándar (2–5 días)",
+          "cost": 0,
+          "eta": "2–5 días"
+        }
+      }
+    },
+    {
+      "id": "9bf001ac-75a4-4aec-8529-4fcb1995f3e4",
+      "preferenceId": "whatsapp:9bf001ac-75a4-4aec-8529-4fcb1995f3e4",
+      "items": [
+        {
+          "slug": "rebozo-artesanal",
+          "qty": 1,
+          "price": 899
+        },
+        {
+          "slug": "alebrije-oaxaca",
+          "qty": 1,
+          "price": 749
+        },
+        {
+          "slug": "sombrero-charro",
+          "qty": 1,
+          "price": 1199
+        },
+        {
+          "slug": "dsa",
+          "qty": 1,
+          "price": 12
+        }
+      ],
+      "total": 2859,
+      "status": "pending",
+      "raw": {
+        "billing": {
+          "name": "",
+          "email": "",
+          "rfc": ""
+        },
+        "channel": "whatsapp",
+        "coupon": null,
+        "shipping": {
+          "id": "standard",
+          "label": "Envío estándar (2–5 días)",
+          "cost": 0,
+          "eta": "2–5 días"
+        }
+      }
     }
   ]
 }

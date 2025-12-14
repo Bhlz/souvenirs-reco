@@ -1,5 +1,6 @@
 'use client';
 import Image from 'next/image';
+import Link from 'next/link';
 import { ShieldCheck, Truck, CreditCard } from 'lucide-react';
 import bg from '@/public/logos/portadasouvenirsgreco.jpg';
 
@@ -43,14 +44,12 @@ export default function Hero() {
           </p>
 
           <div className="mt-6 flex flex-wrap justify-center gap-3">
-            {/* ← apunta a #catalogo y usa el handler con offset */}
-            <a
-              href="#catalogo"
-              onClick={goTo('catalogo')}
+            <Link
+              href="/catalogo"
               className="btn-primary transition-transform duration-300 hover:scale-105"
             >
               Comprar ahora
-            </a>
+            </Link>
 
             <a
               href="#story"

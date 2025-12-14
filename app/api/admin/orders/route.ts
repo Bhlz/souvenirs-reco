@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     const orders = await getOrders();
     return Response.json({ orders });
   } catch {
-    return new Response('Unauthorized', { status: 401 });
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 }
 
@@ -24,6 +24,6 @@ export async function PUT(req: NextRequest) {
     await updateOrderByExternalRef(id, { shipment, invoice });
     return Response.json({ ok: true });
   } catch {
-    return new Response('Unauthorized', { status: 401 });
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 }
