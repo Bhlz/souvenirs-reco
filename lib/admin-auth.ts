@@ -54,9 +54,13 @@ const sign = async (data: string) => {
   return new Uint8Array(signature);
 };
 
+const toArrayBuffer = (bytes: Uint8Array) =>
+  bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+
 const verifySignature = async (data: string, signature: Uint8Array) => {
   const key = await getKey();
-  return crypto.subtle.verify('HMAC', key, signature, encoder.encode(data));
+  const signatureBuffer = toArrayBuffer(signature);
+  return crypto.subtle.verify('HMAC', key, signatureBuffer, encoder.encode(data));
 };
 
 export const createAdminToken = async (ttlMs = DEFAULT_TTL_MS) => {
