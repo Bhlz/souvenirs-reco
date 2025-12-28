@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { addToCart } from '@/lib/cart';
 import { toast } from '@/lib/toast';
@@ -9,17 +9,41 @@ import type { Product } from '@/lib/types';
 type Props = { p: Product };
 
 export default function ProductInfo({ p }: Props) {
+  const variantGroups = p.variants ?? [];
+  const variantPriceMap = p.variantPriceMap ?? {};
+
   const [selected, setSelected] = useState<Record<string, string>>({});
   const [qty, setQty] = useState(1);
 
+  useEffect(() => {
+    const defaults: Record<string, string> = {};
+    variantGroups.forEach((g) => {
+      if (g.name && g.values?.length) defaults[g.name] = g.values[0];
+    });
+    setSelected(defaults);
+  }, [p.slug, variantGroups]);
+
   const price = useMemo(() => {
-    if (!p.variantPriceMap || Object.keys(selected).length === 0) return p.price;
-    const entries = Object.entries(selected).sort(([a], [b]) => a.localeCompare(b));
-    const exactKey = entries.map(([k, v]) => `${k}:${v}`).join('|');
-    if (p.variantPriceMap[exactKey] != null) return p.variantPriceMap[exactKey];
-    const firstKey = `${entries[0][0]}:${entries[0][1]}`;
-    return p.variantPriceMap[firstKey] ?? p.price;
-  }, [p, selected]);
+    if (!variantGroups.length || Object.keys(variantPriceMap).length === 0) return p.price;
+
+    const groupsWithValue = variantGroups.filter((g) => selected[g.name]);
+    const allSelected =
+      groupsWithValue.length === variantGroups.filter((g) => g.values?.length).length;
+
+    if (allSelected) {
+      const fullKey = variantGroups
+        .map((g) => `${g.name}:${selected[g.name]}`)
+        .join('|');
+      if (variantPriceMap[fullKey] != null) return variantPriceMap[fullKey];
+    }
+
+    for (const g of groupsWithValue) {
+      const key = `${g.name}:${selected[g.name]}`;
+      if (variantPriceMap[key] != null) return variantPriceMap[key];
+    }
+
+    return p.price;
+  }, [p.price, selected, variantGroups, variantPriceMap]);
 
   const pick = (group: string, value: string) =>
     setSelected((s) => ({ ...s, [group]: value }));

@@ -10,8 +10,9 @@ export default function AdminLogin() {
     e.preventDefault();
     setErr(null);
     const res = await fetch('/api/admin/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password })});
+    const body = await res.json().catch(() => ({}));
     if (res.ok) router.push('/admin/products');
-    else setErr('Contraseña incorrecta');
+    else setErr(body.message || 'Contraseña incorrecta o ADMIN_PASSWORD sin configurar');
   }
   return (
     <div className="container py-12 max-w-md">

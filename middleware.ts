@@ -1,14 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { ADMIN_COOKIE, verifyAdminToken, isAdminAuthConfigured } from '@/lib/admin-auth';
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const url = req.nextUrl;
   const isAdminPath = url.pathname.startsWith('/admin');
   if (!isAdminPath) return NextResponse.next();
 
   if (url.pathname === '/admin/login') return NextResponse.next();
 
-  const cookie = req.cookies.get('admin')?.value;
-  if (cookie === '1') return NextResponse.next();
+  if (!isAdminAuthConfigured()) {
+    url.pathname = '/admin/login';
+    return NextResponse.redirect(url);
+  }
+
+  const token = req.cookies.get(ADMIN_COOKIE)?.value;
+  const ok = await verifyAdminToken(token);
+  if (ok) return NextResponse.next();
 
   url.pathname = '/admin/login';
   return NextResponse.redirect(url);

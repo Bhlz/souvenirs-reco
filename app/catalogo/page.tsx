@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import Link from 'next/link';
 import ProductGrid from '@/components/ProductGrid';
 import Reveal from '@/components/ui/Reveal';

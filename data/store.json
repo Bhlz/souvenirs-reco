@@ -20,11 +20,18 @@
       "variants": [
         {
           "name": "Tamaño",
-          "values": ["Chico", "Mediano", "Grande"]
+          "values": [
+            "Chico",
+            "Mediano",
+            "Grande"
+          ]
         },
         {
           "name": "Color",
-          "values": ["Natural", "Multicolor"]
+          "values": [
+            "Natural",
+            "Multicolor"
+          ]
         }
       ],
       "variantPriceMap": {
@@ -34,7 +41,10 @@
         "Tamaño:Mediano|Color:Multicolor": 769,
         "Tamaño:Grande|Color:Multicolor": 919
       },
-      "bundleSkus": ["taza-talavera", "rebozo-artesanal"]
+      "bundleSkus": [
+        "taza-talavera",
+        "rebozo-artesanal"
+      ]
     },
     {
       "slug": "rebozo-artesanal",
@@ -52,7 +62,11 @@
       "variants": [
         {
           "name": "Color",
-          "values": ["Azul", "Rojo", "Negro"]
+          "values": [
+            "Azul",
+            "Rojo",
+            "Negro"
+          ]
         }
       ],
       "variantPriceMap": {
@@ -77,7 +91,11 @@
       "variants": [
         {
           "name": "Tamaño",
-          "values": ["Chico", "Mediano", "Grande"]
+          "values": [
+            "Chico",
+            "Mediano",
+            "Grande"
+          ]
         }
       ],
       "variantPriceMap": {
@@ -90,7 +108,9 @@
       "slug": "dsa",
       "name": "dsa",
       "price": 12,
-      "images": ["/logos/LogosouvenirsGreco.jpg"],
+      "images": [
+        "/logos/LogosouvenirsGreco.jpg"
+      ],
       "rating": 5,
       "reviews": 0,
       "category": "21",
@@ -102,12 +122,62 @@
       "slug": "21",
       "name": "12",
       "price": 1,
-      "images": ["/logos/LogosouvenirsGreco.jpg"],
+      "images": [
+        "/logos/LogosouvenirsGreco.jpg"
+      ],
       "rating": 5,
       "reviews": 0,
       "category": "21",
       "description": "21",
       "stock": 1,
+      "bundleSkus": []
+    },
+    {
+      "slug": "3221",
+      "name": "Barriles",
+      "price": 2,
+      "images": [],
+      "rating": 5,
+      "reviews": 0,
+      "category": "21",
+      "description": "21",
+      "stock": 2,
+      "bundleSkus": []
+    },
+    {
+      "slug": "Prueba",
+      "name": "Producto Prueba",
+      "price": 899,
+      "images": [
+        "/uploads/1766434453623-Portadasouvenirsgreco.jpg",
+        "/uploads/1766434474173-Comic.png",
+        "https://m.media-amazon.com/images/I/71SP4rjoi9L.jpg"
+      ],
+      "rating": 1.5,
+      "reviews": 5,
+      "category": "Artesanías",
+      "description": "Barriles",
+      "stock": 22,
+      "variants": [
+        {
+          "name": "Variante",
+          "values": [
+            "chico"
+          ]
+        },
+        {
+          "name": "Variante",
+          "values": [
+            "mediano"
+          ]
+        },
+        {
+          "name": "Variante",
+          "values": [
+            "grande"
+          ]
+        }
+      ],
       "bundleSkus": []
     }
   ]

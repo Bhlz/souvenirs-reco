@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // app/product/[slug]/page.tsx
 import { notFound } from 'next/navigation';
 import { getAllProducts, getProduct } from '@/lib/store';

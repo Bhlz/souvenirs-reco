@@ -1,14 +1,16 @@
 import { NextRequest } from 'next/server';
 import { getOrders, updateOrderByExternalRef } from '@/lib/store';
+import { ADMIN_COOKIE, verifyAdminToken } from '@/lib/admin-auth';
 
-function ensureAuth(req: NextRequest) {
-  const cookie = req.cookies.get('admin')?.value;
-  if (cookie !== '1') throw new Error('unauthorized');
+async function ensureAuth(req: NextRequest) {
+  const token = req.cookies.get(ADMIN_COOKIE)?.value;
+  const ok = await verifyAdminToken(token);
+  if (!ok) throw new Error('unauthorized');
 }
 
 export async function GET(req: NextRequest) {
   try {
-    ensureAuth(req);
+    await ensureAuth(req);
     const orders = await getOrders();
     return Response.json({ orders });
   } catch {
@@ -18,7 +20,7 @@ export async function GET(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    ensureAuth(req);
+    await ensureAuth(req);
     const { id, shipment, invoice } = await req.json();
     if (!id) return new Response('Bad Request', { status: 400 });
     await updateOrderByExternalRef(id, { shipment, invoice });

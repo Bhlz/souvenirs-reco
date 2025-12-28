@@ -8,11 +8,13 @@ import {
   Home,
 } from 'lucide-react';
 import Toaster from '@/components/Toaster';
+import { TrendingUp } from 'lucide-react';
 
 const nav = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/orders', label: 'Órdenes', icon: ShoppingCart },
   { href: '/admin/products', label: 'Productos', icon: Package },
+  { href: '/admin/sales', label: 'Ventas', icon: TrendingUp },
   { href: '/admin/settings', label: 'Ajustes', icon: Settings, disabled: true },
 ];
 
