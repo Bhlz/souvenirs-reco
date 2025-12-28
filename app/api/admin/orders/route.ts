@@ -21,9 +21,24 @@ export async function GET(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     await ensureAuth(req);
-    const { id, shipment, invoice } = await req.json();
+    const { id, shipment, invoice, status } = await req.json();
     if (!id) return new Response('Bad Request', { status: 400 });
-    await updateOrderByExternalRef(id, { shipment, invoice });
+    const patch: Record<string, any> = {};
+
+    if (shipment) {
+      patch.shipment = {
+        status: shipment.status,
+        tracking: shipment.tracking,
+        carrier: shipment.carrier,
+      };
+    }
+
+    if (invoice) patch.invoice = invoice;
+
+    const allowedStatus = ['pending', 'approved', 'rejected', 'in_process', 'unknown'];
+    if (allowedStatus.includes(status)) patch.status = status;
+
+    await updateOrderByExternalRef(id, patch);
     return Response.json({ ok: true });
   } catch {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });

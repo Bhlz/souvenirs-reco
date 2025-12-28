@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import Toaster from '@/components/Toaster';
 import { TrendingUp } from 'lucide-react';
+import LogoutButton from './_components/LogoutButton';
 
 const nav = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -79,6 +80,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <div className="flex items-center gap-3">
                 <Link href="/admin/products/new" className="btn-primary">Nuevo producto</Link>
                 <Link href="/admin/orders" className="btn">Órdenes</Link>
+                <LogoutButton />
               </div>
             </div>
           </header>

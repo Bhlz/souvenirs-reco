@@ -1,9 +1,17 @@
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
-// Nombre único para la cookie del panel
 export const ADMIN_COOKIE = 'admin_token';
 const DEFAULT_TTL_MS = 1000 * 60 * 60 * 12; // 12h
+const MIN_PASSWORD_LENGTH = 8;
+const MIN_SECRET_LENGTH = 16;
+
+type AdminAuthConfig = {
+  password: string;
+  secret: string;
+  issues: string[];
+  blockingIssue?: string;
+};
 
 const base64UrlEncode = (bytes: Uint8Array) => {
   const binary = Array.from(bytes)
@@ -27,15 +35,34 @@ const base64UrlDecode = (value: string) => {
   return bytes;
 };
 
-const getSecret = () => {
+export const getAdminAuthConfig = (): AdminAuthConfig => {
+  const password = (process.env.ADMIN_PASSWORD || '').trim();
   const secret = (process.env.ADMIN_SECRET || process.env.ADMIN_PASSWORD || '').trim();
-  return secret;
+  const issues: string[] = [];
+  let blockingIssue: string | undefined;
+
+  if (!password) {
+    blockingIssue = 'ADMIN_PASSWORD no está configurado';
+  } else if (password.length < MIN_PASSWORD_LENGTH) {
+    issues.push(`Usa una contraseña de al menos ${MIN_PASSWORD_LENGTH} caracteres`);
+  }
+
+  if (!process.env.ADMIN_SECRET) {
+    issues.push('Define ADMIN_SECRET distinto a ADMIN_PASSWORD para firmar tokens');
+  } else if (secret.length < MIN_SECRET_LENGTH) {
+    issues.push(`ADMIN_SECRET debe tener mínimo ${MIN_SECRET_LENGTH} caracteres`);
+  }
+
+  return { password, secret, issues, blockingIssue };
 };
+
+const getSecret = () => getAdminAuthConfig().secret;
 
 let keyPromise: Promise<CryptoKey> | null = null;
 const getKey = () => {
   if (keyPromise) return keyPromise;
   const secret = getSecret();
+  if (!secret) throw new Error('Missing ADMIN_SECRET or ADMIN_PASSWORD for admin auth');
   keyPromise = crypto.subtle.importKey(
     'raw',
     encoder.encode(secret),
@@ -92,4 +119,7 @@ export const verifyAdminToken = async (token?: string | null) => {
   }
 };
 
-export const isAdminAuthConfigured = () => !!getSecret();
+export const isAdminAuthConfigured = () => {
+  const cfg = getAdminAuthConfig();
+  return !cfg.blockingIssue && !!cfg.secret;
+};

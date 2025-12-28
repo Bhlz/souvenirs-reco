@@ -23,6 +23,8 @@ const fetcher = async (url: string) => {
 export default function ProductsTable({ initialProducts }: { initialProducts: Product[] }) {
   const { data, mutate, error, isLoading } = useSWR('/api/admin/products', fetcher, {
     fallbackData: { products: initialProducts },
+    refreshInterval: 5000,
+    revalidateOnFocus: true,
   });
   const products = data?.products || initialProducts || [];
   const [removing, setRemoving] = useState<string | null>(null);
