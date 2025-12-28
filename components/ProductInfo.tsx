@@ -118,7 +118,7 @@ export default function ProductInfo({ p }: Props) {
 
       <div className="mt-6 space-y-2 text-sm text-neutral-700">
         <div>
-          <strong>Envío:</strong> 24–72h (estimado por CP al pagar)
+          <strong>Envío:</strong> 24–72h (estimado por CP al  pagar)
         </div>
         <div>
           <strong>Devoluciones:</strong> 30 días sin complicaciones
