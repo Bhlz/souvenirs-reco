@@ -179,6 +179,32 @@
         }
       ],
       "bundleSkus": []
+    },
+    {
+      "slug": "Barbies",
+      "name": "Muñeca Barbie",
+      "price": 600,
+      "images": [
+        "/uploads/1766966662789-550533724_122117053946978087_3422319375663486082_n.jpg",
+        "/uploads/1766966679878-550684640_122117054414978087_5391067563371781971_n.jpg"
+      ],
+      "rating": 5,
+      "reviews": 322,
+      "category": "Muñecas",
+      "description": "¡Viste tu Fiesta de #México! 🇲🇽✨ Muñecas Artesanales que Enamoran.\nNO SON SÓLO ADORNOS, SON EL ALMA DE TU #CELEBRACIÓN! ❤️\n✨Cada pieza es un homenaje a la riqueza de nuestra cultura: 🌟AL ESTILO JALISCO✨\n🇲🇽Diseños Espectaculares: Desde la elegancia del traje de charro hasta la explosión de color de los vestidos folklóricos. ¡Tenemos una para cada rincón de México!\n🎁 El Recuerdo Perfecto: Sorprende a tus invitados con un souvenir que no terminará en un cajón. ¡Es un regalo que decorará sus hogares y corazones!\n✨ Calidad y Detalle: Hechas con esmero para ser el centro de atención en mesas, altares o como un regalo corporativo único.\n👫 Variedad de Estilos: Muñecas y muñecos de diferentes tamaños y trajes, ideales para representar a la pareja festejada o simplemente para añadir diversidad.\n‼️Son el souvenir que tus invitados SÍ querrán llevarse a casa‼️\n¿Listo para que tu fiesta grite \"¡VIVA MÉXICO!\"?",
+      "stock": 10,
+      "variants": [
+        {
+          "name": "Jalisco",
+          "values": [
+            "Morado"
+          ]
+        }
+      ],
+      "bundleSkus": [],
+      "variantPriceMap": {
+        "Jalisco:Morado": 550
+      }
     }
   ]
 }

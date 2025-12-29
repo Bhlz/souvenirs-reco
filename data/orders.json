@@ -16,7 +16,7 @@
         }
       ],
       "total": 3147,
-      "status": "pending",
+      "status": "approved",
       "raw": {
         "billing": {
           "name": "",
@@ -24,6 +24,9 @@
           "rfc": ""
         },
         "channel": "whatsapp"
+      },
+      "shipment": {
+        "status": "delivered"
       }
     },
     {
