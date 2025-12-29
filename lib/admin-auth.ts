@@ -81,8 +81,12 @@ const sign = async (data: string) => {
   return new Uint8Array(signature);
 };
 
-const toArrayBuffer = (bytes: Uint8Array) =>
-  bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+const toArrayBuffer = (bytes: Uint8Array) => {
+  // Copia a un ArrayBuffer nuevo para garantizar el tipo esperado por SubtleCrypto
+  const buf = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(buf).set(bytes);
+  return buf;
+};
 
 const verifySignature = async (data: string, signature: Uint8Array) => {
   const key = await getKey();
