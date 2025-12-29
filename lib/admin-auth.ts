@@ -88,10 +88,19 @@ const toArrayBuffer = (bytes: Uint8Array) => {
   return buf;
 };
 
+const constantTimeEqual = (a: Uint8Array, b: Uint8Array) => {
+  if (a.byteLength !== b.byteLength) return false;
+  let diff = 0;
+  for (let i = 0; i < a.byteLength; i++) {
+    diff |= a[i] ^ b[i];
+  }
+  return diff === 0;
+};
+
 const verifySignature = async (data: string, signature: Uint8Array) => {
   const key = await getKey();
-  const signatureBuffer = toArrayBuffer(signature);
-  return crypto.subtle.verify('HMAC', key, signatureBuffer, encoder.encode(data));
+  const expected = new Uint8Array(await crypto.subtle.sign('HMAC', key, encoder.encode(data)));
+  return constantTimeEqual(signature, expected);
 };
 
 export const createAdminToken = async (ttlMs = DEFAULT_TTL_MS) => {
