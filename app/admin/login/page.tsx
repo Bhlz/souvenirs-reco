@@ -19,13 +19,14 @@ export default function AdminLogin() {
       const res = await fetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ password }),
       });
       const body = await res.json().catch(() => ({}));
 
       if (res.ok) {
         if (Array.isArray(body.warnings)) setWarnings(body.warnings.filter(Boolean));
-        router.push('/admin');
+        router.replace('/admin');
       } else {
         setErr(body.message || 'Contraseña incorrecta o ADMIN_PASSWORD sin configurar');
       }
