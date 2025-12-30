@@ -26,6 +26,39 @@
       "price": 324,
       "date": "2025-12-16T00:00:00.000Z",
       "note": "a"
+    },
+    {
+      "id": "b65d6d0b-d06d-490b-b077-0a53e78c676c",
+      "name": "233",
+      "quantity": 1,
+      "cost": 12,
+      "price": 1232,
+      "date": "2025-12-29T00:00:00.000Z"
+    },
+    {
+      "id": "8e3c000d-b470-4f72-9f72-3fd2c60306dd",
+      "name": "wrasse",
+      "quantity": 1,
+      "cost": 4320,
+      "price": 43243,
+      "date": "2025-12-29T00:00:00.000Z",
+      "note": "isa"
+    },
+    {
+      "id": "728d8f7b-bea1-4232-93ff-1f11e053cffd",
+      "name": "Venta prueba 29 dic",
+      "quantity": 2,
+      "cost": 120,
+      "price": 340,
+      "date": "2025-12-30T18:00:00.000Z"
+    },
+    {
+      "id": "c0328814-9d15-4bc5-91dd-b6f5f49fdef3",
+      "name": "Prueba 29",
+      "quantity": 1,
+      "cost": 120,
+      "price": 220,
+      "date": "2025-12-29T18:00:00.000Z"
     }
   ]
 }

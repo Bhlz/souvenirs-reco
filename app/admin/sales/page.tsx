@@ -1,6 +1,7 @@
 'use client';
 import useSWR from 'swr';
 import { useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
 import { Plus, TrendingUp, Wallet, WalletMinimal, CalendarRange } from 'lucide-react';
 import { toast } from '@/lib/toast';
 import type { Sale } from '@/lib/sales';
@@ -21,6 +22,9 @@ const fetcher = async (url: string) => {
 };
 
 type RangeKey = 'today' | 'month' | 'custom';
+
+const toLocalISO = (dateStr: string) => new Date(`${dateStr}T12:00:00`).toISOString();
+const inputDateFromISO = (iso: string) => new Date(iso).toISOString().slice(0, 10);
 
 export default function SalesPage() {
   const { data, mutate, error, isLoading } = useSWR('/api/admin/sales', fetcher);
@@ -100,6 +104,10 @@ export default function SalesPage() {
       return new Date(2020, ma - 1, da).getTime() - new Date(2020, mb - 1, db).getTime();
     });
   }, [filtered, range]);
+  const recentSales = useMemo(
+    () => [...filtered].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+    [filtered]
+  );
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,7 +117,7 @@ export default function SalesPage() {
       quantity: Number(form.quantity),
       cost: Number(form.cost),
       price: Number(form.price),
-      date: form.date,
+      date: toLocalISO(form.date),
       note: form.note,
       id: editingId || undefined,
     };
@@ -147,7 +155,7 @@ export default function SalesPage() {
       quantity: sale.quantity,
       cost: sale.cost,
       price: sale.price,
-      date: new Date(sale.date).toISOString().slice(0, 10),
+      date: inputDateFromISO(sale.date),
       note: sale.note || '',
     });
     if (typeof window !== 'undefined') {
@@ -179,7 +187,7 @@ export default function SalesPage() {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <h2 className="text-lg font-semibold text-slate-900">Gráfica de ventas</h2>
-              <p className="text-sm text-slate-500">Comparativa por hora/día según el rango.</p>
+              <p className="text-sm text-slate-500">Ingresos por hora o día según el rango.</p>
             </div>
             <div className="flex flex-wrap gap-2">
               {(['today', 'month', 'custom'] as RangeKey[]).map((key) => (
@@ -204,31 +212,20 @@ export default function SalesPage() {
             </div>
           </div>
 
-          <div className="relative overflow-hidden rounded-2xl border border-slate-100 bg-gradient-to-br from-amber-50 via-white to-emerald-50 p-5">
-            <div className="pointer-events-none absolute -left-10 top-10 h-32 w-32 rounded-full bg-amber-200/40 blur-3xl" />
-            <div className="pointer-events-none absolute -right-10 -bottom-10 h-32 w-32 rounded-full bg-emerald-200/40 blur-3xl" />
-            {bars.length === 0 ? (
-              <div className="py-10 text-center text-sm text-slate-500">Sin datos en el rango seleccionado.</div>
-            ) : (
-              <div className="flex h-64 items-end gap-3">
-                {bars.map((bar) => {
-                  const max = Math.max(...bars.map((b) => b.revenue));
-                  const height = max > 0 ? Math.max(8, (bar.revenue / max) * 230) : 8;
-                  return (
-                    <div key={bar.label} className="flex flex-1 flex-col items-center gap-2">
-                      <div
-                        className="w-full rounded-lg bg-gradient-to-t from-emerald-500 to-amber-400 shadow-lg transition-[height] duration-500 ease-out"
-                        style={{ height }}
-                        title={currency(bar.revenue)}
-                      />
-                      <div className="text-[11px] font-semibold text-slate-600">{bar.label}</div>
-                      <div className="text-[11px] text-slate-500">{currency(bar.revenue)}</div>
-                    </div>
-                  );
-                })}
+          <div className="relative overflow-hidden rounded-2xl border border-slate-100 bg-slate-900 text-white">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(16,185,129,0.12),transparent_30%),radial-gradient(circle_at_80%_0%,rgba(251,191,36,0.12),transparent_28%)]" />
+            <div className="relative z-10 space-y-4 p-5">
+              <div className="flex items-center justify-between text-sm">
+                <span className="rounded-full bg-white/10 px-3 py-1 font-semibold text-amber-200 ring-1 ring-white/10">
+                  Ingresos
+                </span>
+                <span className="text-xs text-white/70">Animación 0 → total</span>
               </div>
-            )}
+              <BarChart bars={bars} currency={currency} />
+            </div>
           </div>
+
+          <SalesList sales={recentSales} currency={currency} isLoading={isLoading} />
         </div>
 
         <div className="space-y-3">
@@ -419,7 +416,123 @@ export default function SalesPage() {
   );
 }
 
-function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+type Bar = { label: string; revenue: number };
+
+function BarChart({ bars, currency }: { bars: Bar[]; currency: (n: number) => string }) {
+  const max = Math.max(...bars.map((b) => b.revenue), 0);
+
+  if (bars.length === 0) {
+    return (
+      <div className="h-56 rounded-xl border border-white/10 bg-white/5 p-4 text-center text-sm text-white/70">
+        Sin datos en el rango seleccionado.
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="flex h-56 items-end gap-3">
+        {bars.map((bar, idx) => {
+          const height = max > 0 ? Math.max(10, (bar.revenue / max) * 180) : 10;
+          return (
+            <div key={bar.label} className="flex flex-1 flex-col items-center gap-2">
+              <div className="flex w-full flex-1 items-end">
+                <div
+                  className="bar-fill w-full rounded-md bg-gradient-to-t from-emerald-500 to-emerald-300 shadow-lg shadow-emerald-700/20 ring-1 ring-white/20"
+                  style={{ height, animationDelay: `${idx * 80}ms` }}
+                  title={currency(bar.revenue)}
+                />
+              </div>
+              <div className="text-[11px] font-semibold text-white/80">{bar.label}</div>
+              <div className="text-[11px] text-amber-100">{currency(bar.revenue)}</div>
+            </div>
+          );
+        })}
+      </div>
+      <style jsx>{`
+        .bar-fill {
+          transform-origin: bottom;
+          animation: growBar 700ms ease-out forwards;
+        }
+        @keyframes growBar {
+          from {
+            transform: scaleY(0);
+            opacity: 0.5;
+          }
+          to {
+            transform: scaleY(1);
+            opacity: 1;
+          }
+        }
+      `}</style>
+    </>
+  );
+}
+
+function SalesList({
+  sales,
+  currency,
+  isLoading,
+}: {
+  sales: Sale[];
+  currency: (n: number) => string;
+  isLoading: boolean;
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-base font-semibold text-slate-900">Ventas recientes</h3>
+          <p className="text-xs text-slate-600">Justo debajo de la gráfica para revisión rápida.</p>
+        </div>
+        <span className="rounded-full bg-white px-2 py-1 text-[11px] font-semibold text-slate-700 ring-1 ring-slate-100">
+          {sales.length} en rango
+        </span>
+      </div>
+      <div className="mt-3 space-y-2">
+        {isLoading && (
+          <div className="rounded-xl bg-white px-3 py-2 text-sm text-slate-500 shadow-sm ring-1 ring-slate-100">
+            Cargando ventas...
+          </div>
+        )}
+        {!isLoading && sales.length === 0 && (
+          <div className="rounded-xl bg-white px-3 py-2 text-sm text-slate-500 shadow-sm ring-1 ring-slate-100">
+            Sin ventas en este rango.
+          </div>
+        )}
+        {!isLoading &&
+          sales.slice(0, 6).map((s) => {
+            const revenue = s.price * s.quantity;
+            const cost = s.cost * s.quantity;
+            const profit = revenue - cost;
+            return (
+              <div
+                key={s.id}
+                className="flex items-center justify-between rounded-xl bg-white px-3 py-2 shadow-sm ring-1 ring-slate-100"
+              >
+                <div>
+                  <div className="text-sm font-semibold text-slate-900">{s.name}</div>
+                  <div className="text-[11px] text-slate-600">
+                    {new Date(s.date).toLocaleDateString('es-MX', {
+                      day: '2-digit',
+                      month: 'short',
+                    })}{' '}
+                    · {s.quantity} uds
+                  </div>
+                </div>
+                <div className="text-right text-sm font-semibold text-emerald-700">
+                  {currency(revenue)}
+                  <div className="text-[11px] font-normal text-slate-500">Utilidad {currency(profit)}</div>
+                </div>
+              </div>
+            );
+          })}
+      </div>
+    </div>
+  );
+}
+
+function Stat({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
   return (
     <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/60 px-3 py-2">
       <div className="flex items-center gap-2">

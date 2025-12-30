@@ -9,11 +9,19 @@ async function ensureAuth(req: NextRequest) {
   if (!ok) throw new Error('unauthorized');
 }
 
+const toLocalDateISOString = (input: any) => {
+  const base = input ? new Date(input) : new Date();
+  if (Number.isNaN(base.getTime())) return new Date().toISOString();
+  // Fija al mediodía local para evitar corrimientos por zona horaria.
+  const local = new Date(base.getFullYear(), base.getMonth(), base.getDate(), 12, 0, 0);
+  return local.toISOString();
+};
+
 const normalize = (raw: any): Sale => {
   const quantity = Number(raw?.quantity ?? 0);
   const cost = Number(raw?.cost ?? 0);
   const price = Number(raw?.price ?? 0);
-  const dateStr = raw?.date ? new Date(raw.date).toISOString() : new Date().toISOString();
+  const dateStr = toLocalDateISOString(raw?.date);
 
   return {
     id: raw?.id || crypto.randomUUID(),

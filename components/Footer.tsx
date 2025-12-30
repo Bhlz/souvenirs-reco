@@ -40,7 +40,7 @@ export default function Footer() {
           <div className="space-y-3">
             <div className="font-bold">Síguenos</div>
             <p className="text-sm text-neutral-600">Instagram · Facebook · TikTok</p>
-            <Link href="/admin" className="btn w-max text-sm">
+            <Link href="/admin/login" className="btn w-max text-sm">
               Ir al dashboard
             </Link>
           </div>

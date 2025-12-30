@@ -6,6 +6,7 @@ import {
   ShoppingCart,
   Settings,
   Home,
+  PiggyBank,
 } from 'lucide-react';
 import Toaster from '@/components/Toaster';
 import { TrendingUp } from 'lucide-react';
@@ -16,7 +17,8 @@ const nav = [
   { href: '/admin/orders', label: 'Órdenes', icon: ShoppingCart },
   { href: '/admin/products', label: 'Productos', icon: Package },
   { href: '/admin/sales', label: 'Ventas', icon: TrendingUp },
-  { href: '/admin/settings', label: 'Ajustes', icon: Settings, disabled: true },
+  { href: '/admin/finanzas', label: 'Finanzas', icon: PiggyBank },
+  { href: '/admin/settings', label: 'Ajustes', icon: Settings },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -42,22 +44,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {nav.map((item) => (
               <Link
                 key={item.href}
-                href={item.disabled ? '#' : item.href}
-                className={[
-                  'group flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition',
-                  item.disabled
-                    ? 'cursor-not-allowed text-slate-400'
-                    : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900',
-                ].join(' ')}
-                aria-disabled={item.disabled}
+                href={item.href}
+                className="group flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
               >
                 <item.icon className="h-4 w-4 text-brand" />
                 {item.label}
-                {item.disabled && (
-                  <span className="ml-auto rounded-full bg-slate-100 px-2 text-[10px] font-semibold text-slate-500">
-                    Próximamente
-                  </span>
-                )}
               </Link>
             ))}
           </nav>
