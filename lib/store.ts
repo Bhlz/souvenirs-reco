@@ -6,10 +6,10 @@ const decimalToNumber = (value?: Prisma.Decimal | null) =>
   value != null ? Number(value) : undefined;
 
 const productInclude = {
-  images: { orderBy: { position: 'asc' } },
+  images: { orderBy: { position: 'asc' as const } },
   options: {
-    include: { values: { orderBy: { position: 'asc' } } },
-    orderBy: { position: 'asc' },
+    include: { values: { orderBy: { position: 'asc' as const } } },
+    orderBy: { position: 'asc' as const },
   },
   skus: {
     include: {
@@ -25,7 +25,7 @@ const productInclude = {
       relatedProduct: { select: { slug: true } },
     },
   },
-};
+} as const;
 
 function productRecordToProduct(p: Prisma.ProductGetPayload<{ include: typeof productInclude }>): Product {
   const variantGroups = p.options.map((opt) => ({
@@ -267,12 +267,12 @@ export async function createOrder(o: Order) {
       },
       shipment: o.shipment
         ? {
-            create: {
-              status: o.shipment.status,
-              tracking: o.shipment.tracking,
-              carrier: o.shipment.carrier,
-            },
-          }
+          create: {
+            status: o.shipment.status,
+            tracking: o.shipment.tracking,
+            carrier: o.shipment.carrier,
+          },
+        }
         : undefined,
       invoice: o.invoice ?? null,
     },
@@ -289,19 +289,19 @@ export async function updateOrderByPreference(preferenceId: string, patch: Parti
       invoice: patch.invoice as Prisma.InputJsonValue | undefined,
       shipment: patch.shipment
         ? {
-            upsert: {
-              create: {
-                status: patch.shipment.status,
-                tracking: patch.shipment.tracking,
-                carrier: patch.shipment.carrier,
-              },
-              update: {
-                status: patch.shipment.status,
-                tracking: patch.shipment.tracking,
-                carrier: patch.shipment.carrier,
-              },
+          upsert: {
+            create: {
+              status: patch.shipment.status,
+              tracking: patch.shipment.tracking,
+              carrier: patch.shipment.carrier,
             },
-          }
+            update: {
+              status: patch.shipment.status,
+              tracking: patch.shipment.tracking,
+              carrier: patch.shipment.carrier,
+            },
+          },
+        }
         : undefined,
     },
   });
@@ -316,19 +316,19 @@ export async function updateOrderByExternalRef(orderId: string, patch: Partial<O
       invoice: patch.invoice as Prisma.InputJsonValue | undefined,
       shipment: patch.shipment
         ? {
-            upsert: {
-              create: {
-                status: patch.shipment.status,
-                tracking: patch.shipment.tracking,
-                carrier: patch.shipment.carrier,
-              },
-              update: {
-                status: patch.shipment.status,
-                tracking: patch.shipment.tracking,
-                carrier: patch.shipment.carrier,
-              },
+          upsert: {
+            create: {
+              status: patch.shipment.status,
+              tracking: patch.shipment.tracking,
+              carrier: patch.shipment.carrier,
             },
-          }
+            update: {
+              status: patch.shipment.status,
+              tracking: patch.shipment.tracking,
+              carrier: patch.shipment.carrier,
+            },
+          },
+        }
         : undefined,
     },
   });
@@ -358,10 +358,10 @@ export async function getOrders() {
     raw: o.raw ?? undefined,
     shipment: o.shipment
       ? {
-          status: (o.shipment.status as any) ?? 'pending',
-          tracking: o.shipment.tracking ?? undefined,
-          carrier: o.shipment.carrier ?? undefined,
-        }
+        status: (o.shipment.status as any) ?? 'pending',
+        tracking: o.shipment.tracking ?? undefined,
+        carrier: o.shipment.carrier ?? undefined,
+      }
       : undefined,
     invoice: (o.invoice as any) ?? undefined,
   }));
