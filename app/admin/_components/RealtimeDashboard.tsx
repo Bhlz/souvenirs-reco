@@ -154,7 +154,7 @@ export default function RealtimeDashboard({ initial }: { initial: Overview }) {
                   <StatusPill status={o.status} />
                 </div>
                 <div className="text-sm text-slate-600">
-                  Envío: <strong>{o.shipment?.status ?? 'pending'}</strong>
+                  Envío: <strong>{o.shipmentInfo?.status ?? 'pending'}</strong>
                 </div>
                 <div className="text-sm font-semibold text-emerald-700">{currency(o.total ?? 0)}</div>
                 <div className="text-sm">

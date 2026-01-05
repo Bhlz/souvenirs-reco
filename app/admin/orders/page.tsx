@@ -20,7 +20,7 @@ const fetcher = async (url: string) => {
   return res.json();
 };
 
-type ShipmentStatus = Order['shipment'] extends { status: infer S } ? S : 'pending';
+type ShipmentStatus = Order['shipmentInfo'] extends { status: infer S } ? S : 'pending';
 
 const statusOptions: Order['status'][] = ['pending', 'approved', 'in_process', 'rejected', 'unknown'];
 const shipmentOptions: ShipmentStatus[] = ['pending', 'shipped', 'delivered'];
@@ -96,27 +96,27 @@ function OrderCard({
   onSave: (patch: Partial<Order>) => Promise<boolean>;
 }) {
   const [status, setStatus] = useState<Order['status']>(order.status);
-  const [shipmentStatus, setShipmentStatus] = useState<ShipmentStatus>(order.shipment?.status || 'pending');
-  const [tracking, setTracking] = useState(order.shipment?.tracking || '');
-  const [carrier, setCarrier] = useState(order.shipment?.carrier || '');
+  const [shipmentStatus, setShipmentStatus] = useState<ShipmentStatus>(order.shipmentInfo?.status || 'pending');
+  const [tracking, setTracking] = useState(order.shipmentInfo?.tracking || '');
+  const [carrier, setCarrier] = useState(order.shipmentInfo?.carrier || '');
   const [invoiceNumber, setInvoiceNumber] = useState(order.invoice?.number || '');
   const [invoiceUrl, setInvoiceUrl] = useState(order.invoice?.url || '');
 
   useEffect(() => {
     setStatus(order.status);
-    setShipmentStatus((order.shipment?.status as ShipmentStatus) || 'pending');
-    setTracking(order.shipment?.tracking || '');
-    setCarrier(order.shipment?.carrier || '');
+    setShipmentStatus((order.shipmentInfo?.status as ShipmentStatus) || 'pending');
+    setTracking(order.shipmentInfo?.tracking || '');
+    setCarrier(order.shipmentInfo?.carrier || '');
     setInvoiceNumber(order.invoice?.number || '');
     setInvoiceUrl(order.invoice?.url || '');
-  }, [order.id, order.status, order.shipment?.status, order.shipment?.tracking, order.shipment?.carrier, order.invoice?.number, order.invoice?.url]);
+  }, [order.id, order.status, order.shipmentInfo?.status, order.shipmentInfo?.tracking, order.shipmentInfo?.carrier, order.invoice?.number, order.invoice?.url]);
 
   const total = useMemo(() => currency(order.total ?? 0), [order.total]);
 
   const saveShipping = () =>
     onSave({
       status,
-      shipment: { status: shipmentStatus, tracking: tracking || undefined, carrier: carrier || undefined },
+      shipmentInfo: { status: shipmentStatus, tracking: tracking || undefined, carrier: carrier || undefined },
     });
 
   const saveInvoice = () => onSave({ invoice: { number: invoiceNumber || undefined, url: invoiceUrl || undefined } });

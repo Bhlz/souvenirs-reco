@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
     const pendingOrders = orders.filter((o) =>
       ['pending', 'in_process', 'unknown'].includes(o.status)
     ).length;
-    const shippedOrders = orders.filter((o) => o.shipment?.status === 'shipped').length;
+    const shippedOrders = orders.filter((o) => o.shipmentInfo?.status === 'shipped').length;
     const approvedOrders = orders.filter((o) => o.status === 'approved').length;
 
     // Productos

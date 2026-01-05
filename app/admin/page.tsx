@@ -11,7 +11,7 @@ export default async function AdminDashboard() {
   const pendingOrders = orders.filter((o) =>
     ['pending', 'in_process', 'unknown'].includes(o.status)
   ).length;
-  const shippedOrders = orders.filter((o) => o.shipment?.status === 'shipped').length;
+  const shippedOrders = orders.filter((o) => o.shipmentInfo?.status === 'shipped').length;
   const lowStock = products.filter((p) => (p.stock ?? 0) <= 5);
   const recentOrders = [...orders].slice(-10).reverse();
   const topProducts = [...products]

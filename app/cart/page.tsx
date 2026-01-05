@@ -26,15 +26,15 @@ type CartItem = { slug: string; qty: number; options?: Record<string, string> };
 const FREE_SHIP_THRESHOLD = 999; // MXN para envío gratis
 const IVA_RATE = 0.16;           // IVA (solo para desglose visual)
 const SHIPPING_OPTIONS = [
-  { id: 'pickup',   label: 'Recoger en tienda',          cost: 0,   eta: 'Hoy mismo' },
-  { id: 'standard', label: 'Envío estándar (2–5 días)',  cost: 99,  eta: '2–5 días' },
-  { id: 'express',  label: 'Envío express (1–2 días)',   cost: 169, eta: '1–2 días' },
+  { id: 'pickup', label: 'Recoger en tienda', cost: 0, eta: 'Hoy mismo' },
+  { id: 'standard', label: 'Envío estándar (2–5 días)', cost: 99, eta: '2–5 días' },
+  { id: 'express', label: 'Envío express (1–2 días)', cost: 169, eta: '1–2 días' },
 ] as const;
 
 // Códigos demo de cupón
 const COUPONS: Record<string, { type: 'percent' | 'fixed'; value: number }> = {
   NOWYA10: { type: 'percent', value: 10 }, // 10% off
-  HOLA50:  { type: 'fixed', value: 50 },   // -$50 MXN
+  HOLA50: { type: 'fixed', value: 50 },   // -$50 MXN
 };
 
 // ---------- Guardados para después (localStorage) ----------
@@ -46,27 +46,27 @@ function getSaved(): CartItem[] {
 function setSaved(items: CartItem[]) {
   if (typeof window === 'undefined') return;
   localStorage.setItem(SAVED_KEY, JSON.stringify(items));
-  try { window.dispatchEvent(new Event('cartchange')); } catch {}
+  try { window.dispatchEvent(new Event('cartchange')); } catch { }
 }
-function moveToSaved(slug: string, options?: Record<string,string>) {
+function moveToSaved(slug: string, options?: Record<string, string>) {
   const cart = getCart() as CartItem[];
-  const idx = cart.findIndex(x => x.slug === slug && JSON.stringify(x.options||{}) === JSON.stringify(options||{}));
+  const idx = cart.findIndex(x => x.slug === slug && JSON.stringify(x.options || {}) === JSON.stringify(options || {}));
   if (idx === -1) return;
   const item = cart[idx];
   cart.splice(idx, 1);
 
   const saved = getSaved();
-  const j = saved.findIndex(x => x.slug === slug && JSON.stringify(x.options||{}) === JSON.stringify(options||{}));
+  const j = saved.findIndex(x => x.slug === slug && JSON.stringify(x.options || {}) === JSON.stringify(options || {}));
   if (j >= 0) saved[j].qty += item.qty; else saved.push(item);
   setSaved(saved);
 
   localStorage.setItem('souvenirs_cart_v1', JSON.stringify(cart));
-  try { window.dispatchEvent(new Event('cartchange')); } catch {}
+  try { window.dispatchEvent(new Event('cartchange')); } catch { }
   toast('Guardado para después');
 }
-function moveToCartFromSaved(slug: string, options?: Record<string,string>) {
+function moveToCartFromSaved(slug: string, options?: Record<string, string>) {
   const saved = getSaved();
-  const j = saved.findIndex(x => x.slug === slug && JSON.stringify(x.options||{}) === JSON.stringify(options||{}));
+  const j = saved.findIndex(x => x.slug === slug && JSON.stringify(x.options || {}) === JSON.stringify(options || {}));
   if (j === -1) return;
   const item = saved[j];
   saved.splice(j, 1);
@@ -79,11 +79,11 @@ function moveToCartFromSaved(slug: string, options?: Record<string,string>) {
 // ---------- Helpers ----------
 const currency = (n: number) => n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 
-function unitPrice(p?: Prod, options?: Record<string,string>) {
+function unitPrice(p?: Prod, options?: Record<string, string>) {
   if (!p) return 0;
   if (!options || !p.variantPriceMap) return p.price;
-  const entries = Object.entries(options).sort(([a],[b]) => a.localeCompare(b));
-  const exactKey = entries.map(([k,v]) => `${k}:${v}`).join('|');
+  const entries = Object.entries(options).sort(([a], [b]) => a.localeCompare(b));
+  const exactKey = entries.map(([k, v]) => `${k}:${v}`).join('|');
   if (p.variantPriceMap[exactKey] != null) return p.variantPriceMap[exactKey];
 
   // fallback: si hay precio por primer atributo
@@ -181,11 +181,11 @@ export default function CartPage() {
   }
 
   // Wrappers que intentan pasar options si tu lib/cart ya lo soporta
-  const inc = (slug: string, options?: Record<string,string>) => {
+  const inc = (slug: string, options?: Record<string, string>) => {
     (addToCart as any)(slug, 1, options);
     refresh();
   };
-  const dec = (slug: string, options?: Record<string,string>) => {
+  const dec = (slug: string, options?: Record<string, string>) => {
     (decrementFromCart as any)(slug, 1, options);
     refresh();
   };
@@ -196,55 +196,53 @@ export default function CartPage() {
     toast('Producto eliminado');
   };
 
-  // ======= NUEVO: ordenar por WhatsApp =======
-  async function orderByWhatsapp() {
-  if (loading) return;
-  setLoading(true);
-  try {
-    const res = await fetch('/api/checkout/wsp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        items,
-        billing,
-        pricing: { subtotal, discount, shipping: shippingCost, total },
-        shipping: {
-          id: selectedShipping.id,
-          label: selectedShipping.label,
-          cost: shippingCost,
-          eta: selectedShipping.eta,
-        },
-        coupon: appliedCoupon,
-      }),
-    });
+  // ======= Checkout con Mercado Pago =======
+  async function orderWithMercadoPago() {
+    if (loading) return;
+    setLoading(true);
+    try {
+      const res = await fetch('/api/checkout/mp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: items.map(it => ({ slug: it.slug, qty: it.qty })),
+          billing,
+          pricing: { subtotal, discount, shipping: shippingCost, total },
+        }),
+      });
 
-    if (!res.ok) throw new Error(await res.text());
-    const data = await res.json();
-    if (!data?.chatUrl || !data?.orderId) throw new Error('Respuesta inválida');
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(errText);
+      }
 
-    // Guarda un snapshot mínimo para /order/[id]
-    const snapshot = {
-      id: data.orderId,
-      items: items.map((it) => {
-        // Si quieres el nombre, también puedes guardarlo resolviéndolo con prodBySlug:
-        const p = prodBySlug[it.slug];
-        const unit = p ? (p.variantPriceMap ? /* si usas variantes */ (p.price) : p.price) : 0;
-        return { slug: p?.name || it.slug, qty: it.qty, price: unit };
-      }),
-      total,
-      status: 'pending',
-    };
-    localStorage.setItem(`order_snapshot_${data.orderId}`, JSON.stringify(snapshot));
+      const data = await res.json();
+      // init_point es PROD, sandbox_init_point es SANDBOX
+      const paymentUrl = data.init_point || data.sandbox_init_point;
+      if (!paymentUrl) throw new Error('No se obtuvo URL de pago');
 
-    toast('Abriendo WhatsApp…');
-    window.location.assign(data.chatUrl);
-  } catch (err) {
-    console.error(err);
-    alert('No se pudo generar el pedido por WhatsApp. Intenta de nuevo.');
-  } finally {
-    setLoading(false);
+      // Guarda un snapshot mínimo para /order/[id] (usamos external_reference de MP como orderId)
+      const snapshot = {
+        id: data.id, // preferenceId
+        items: items.map((it) => {
+          const p = prodBySlug[it.slug];
+          const unit = p ? (p.variantPriceMap ? p.price : p.price) : 0;
+          return { slug: p?.name || it.slug, qty: it.qty, price: unit };
+        }),
+        total,
+        status: 'pending',
+      };
+      localStorage.setItem(`order_snapshot_${data.id}`, JSON.stringify(snapshot));
+
+      toast('Redirigiendo a Mercado Pago…');
+      window.location.assign(paymentUrl);
+    } catch (err) {
+      console.error(err);
+      alert('No se pudo procesar el pago. Intenta de nuevo.');
+    } finally {
+      setLoading(false);
+    }
   }
-}
 
   // ===========================================
 
@@ -402,7 +400,7 @@ export default function CartPage() {
                   {saved.map(s => {
                     const p = prodBySlug[s.slug] as Prod | undefined;
                     return (
-                      <div key={`${s.slug}-${JSON.stringify(s.options||{})}`} className="flex items-center gap-3">
+                      <div key={`${s.slug}-${JSON.stringify(s.options || {})}`} className="flex items-center gap-3">
                         <div className="relative h-14 w-14 overflow-hidden rounded-lg border">
                           {p ? (
                             <Image
@@ -417,7 +415,7 @@ export default function CartPage() {
                           <div className="text-sm font-medium">{p?.name || s.slug}</div>
                           {s.options && Object.keys(s.options).length > 0 && (
                             <div className="text-xs text-neutral-600">
-                              {Object.entries(s.options).map(([k,v])=>(<span key={k} className="mr-2">{k}: <strong>{v}</strong></span>))}
+                              {Object.entries(s.options).map(([k, v]) => (<span key={k} className="mr-2">{k}: <strong>{v}</strong></span>))}
                             </div>
                           )}
                           {p && <div className="text-xs text-neutral-600">{currency(unitPrice(p, s.options))} c/u</div>}
@@ -575,17 +573,17 @@ export default function CartPage() {
               />
             </div>
 
-            {/* === Botón principal: WhatsApp === */}
+            {/* === Botón principal: Mercado Pago === */}
             <button
               className="btn-primary mt-4 w-full disabled:opacity-60"
               disabled={loading}
-              onClick={orderByWhatsapp}
+              onClick={orderWithMercadoPago}
             >
-              {loading ? 'Abriendo WhatsApp…' : 'Ordenar por WhatsApp'}
+              {loading ? 'Procesando…' : 'Pagar con Mercado Pago'}
             </button>
 
             <div className="mt-3 grid gap-1 text-xs text-neutral-500">
-              <div>Te llevaremos a WhatsApp para confirmar la disponibilidad y finalizar tu pedido.</div>
+              <div>Serás redirigido a Mercado Pago para completar el pago de forma segura.</div>
               <div>¿Dudas? <a href="/ayuda" className="underline">Centro de ayuda</a> · <a href="/devoluciones" className="underline">Devoluciones</a></div>
             </div>
           </aside>
@@ -597,8 +595,8 @@ export default function CartPage() {
         <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-white/90 p-3 backdrop-blur md:hidden">
           <div className="container flex items-center justify-between">
             <div className="text-lg font-bold">{currency(total)}</div>
-            <button className="btn-primary" onClick={orderByWhatsapp}>
-              {loading ? 'Abriendo WhatsApp…' : 'Ordenar por WhatsApp'}
+            <button className="btn-primary" onClick={orderWithMercadoPago}>
+              {loading ? 'Procesando…' : 'Pagar'}
             </button>
           </div>
         </div>

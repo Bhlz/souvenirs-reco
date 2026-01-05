@@ -77,14 +77,28 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // 8) Guardar orden (no rompas si el FS es sólo-lectura en Vercel)
+    // 8) Guardar orden con todos los datos
     try {
       await createOrder({
         id: orderId,
         preferenceId: pref.id!,
-        items: orderItems.map(({ slug, qty, price }) => ({ slug, qty, price })),
+        items: orderItems.map(({ slug, title, qty, price }) => ({
+          slug,
+          name: title,
+          qty,
+          price
+        })),
+        subtotal: serverSubtotal,
+        discount: Number(pricing?.discount ?? 0),
+        shipping: Number(pricing?.shipping ?? 0),
         total,
         status: 'pending',
+        billing: billing ? {
+          name: billing.name,
+          email: billing.email,
+          phone: billing.phone,
+          rfc: billing.rfc,
+        } : undefined,
         raw: { billing, pricing },
       });
     } catch (err: any) {

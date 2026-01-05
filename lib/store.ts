@@ -232,16 +232,22 @@ export async function deleteProduct(slug: string) {
 export type Order = {
   id: string;
   preferenceId: string;
-  items: { slug: string; qty: number; price: number }[];
+  items: { slug: string; name?: string; qty: number; price: number }[];
+  subtotal?: number;
+  discount?: number;
+  shipping?: number;
   total: number;
   status: 'pending' | 'approved' | 'rejected' | 'in_process' | 'unknown';
   paymentId?: string;
+  billing?: { name?: string; email?: string; phone?: string; rfc?: string };
   raw?: any;
-  shipment?: { status: 'pending' | 'shipped' | 'delivered'; tracking?: string; carrier?: string };
+  shipmentInfo?: { status: 'pending' | 'shipped' | 'delivered'; tracking?: string; carrier?: string };
   invoice?: { number?: string; url?: string };
 };
 
 export async function createOrder(o: Order) {
+  const computedSubtotal = o.items.reduce((sum, it) => sum + it.price * it.qty, 0);
+
   await prisma.order.create({
     data: {
       id: o.id,
@@ -249,28 +255,29 @@ export async function createOrder(o: Order) {
       mpPreferenceId: o.preferenceId,
       mpPaymentId: o.paymentId ?? null,
       status: o.status,
-      subtotal: new Prisma.Decimal(
-        o.items.reduce((sum, it) => sum + it.price * it.qty, 0),
-      ),
-      discount: new Prisma.Decimal(0),
-      shipping: new Prisma.Decimal(0),
+      subtotal: new Prisma.Decimal(o.subtotal ?? computedSubtotal),
+      discount: new Prisma.Decimal(o.discount ?? 0),
+      shipping: new Prisma.Decimal(o.shipping ?? 0),
       total: new Prisma.Decimal(o.total),
       currency: 'MXN',
+      billingName: o.billing?.name ?? null,
+      billingEmail: o.billing?.email ?? null,
+      billingPhone: o.billing?.phone ?? null,
       raw: o.raw ?? {},
       items: {
         create: o.items.map((it) => ({
           slugSnapshot: it.slug,
-          nameSnapshot: it.slug,
+          nameSnapshot: it.name ?? it.slug,
           priceSnapshot: new Prisma.Decimal(it.price),
           quantity: it.qty,
         })),
       },
-      shipment: o.shipment
+      shipment: o.shipmentInfo
         ? {
           create: {
-            status: o.shipment.status,
-            tracking: o.shipment.tracking,
-            carrier: o.shipment.carrier,
+            status: o.shipmentInfo.status,
+            tracking: o.shipmentInfo.tracking,
+            carrier: o.shipmentInfo.carrier,
           },
         }
         : undefined,
@@ -287,18 +294,18 @@ export async function updateOrderByPreference(preferenceId: string, patch: Parti
       mpPaymentId: patch.paymentId ?? undefined,
       raw: patch.raw as Prisma.InputJsonValue | undefined,
       invoice: patch.invoice as Prisma.InputJsonValue | undefined,
-      shipment: patch.shipment
+      shipment: patch.shipmentInfo
         ? {
           upsert: {
             create: {
-              status: patch.shipment.status,
-              tracking: patch.shipment.tracking,
-              carrier: patch.shipment.carrier,
+              status: patch.shipmentInfo.status,
+              tracking: patch.shipmentInfo.tracking,
+              carrier: patch.shipmentInfo.carrier,
             },
             update: {
-              status: patch.shipment.status,
-              tracking: patch.shipment.tracking,
-              carrier: patch.shipment.carrier,
+              status: patch.shipmentInfo.status,
+              tracking: patch.shipmentInfo.tracking,
+              carrier: patch.shipmentInfo.carrier,
             },
           },
         }
@@ -314,18 +321,18 @@ export async function updateOrderByExternalRef(orderId: string, patch: Partial<O
       status: patch.status,
       mpPaymentId: patch.paymentId ?? undefined,
       invoice: patch.invoice as Prisma.InputJsonValue | undefined,
-      shipment: patch.shipment
+      shipment: patch.shipmentInfo
         ? {
           upsert: {
             create: {
-              status: patch.shipment.status,
-              tracking: patch.shipment.tracking,
-              carrier: patch.shipment.carrier,
+              status: patch.shipmentInfo.status,
+              tracking: patch.shipmentInfo.tracking,
+              carrier: patch.shipmentInfo.carrier,
             },
             update: {
-              status: patch.shipment.status,
-              tracking: patch.shipment.tracking,
-              carrier: patch.shipment.carrier,
+              status: patch.shipmentInfo.status,
+              tracking: patch.shipmentInfo.tracking,
+              carrier: patch.shipmentInfo.carrier,
             },
           },
         }
@@ -349,14 +356,23 @@ export async function getOrders() {
     preferenceId: o.mpPreferenceId || '',
     items: o.items.map((it) => ({
       slug: it.slugSnapshot,
+      name: it.nameSnapshot,
       qty: it.quantity,
       price: Number(it.priceSnapshot),
     })),
+    subtotal: Number(o.subtotal),
+    discount: Number(o.discount),
+    shipping: Number(o.shipping),
     total: Number(o.total),
     status: o.status as Order['status'],
     paymentId: o.mpPaymentId ?? undefined,
+    billing: {
+      name: o.billingName ?? undefined,
+      email: o.billingEmail ?? undefined,
+      phone: o.billingPhone ?? undefined,
+    },
     raw: o.raw ?? undefined,
-    shipment: o.shipment
+    shipmentInfo: o.shipment
       ? {
         status: (o.shipment.status as any) ?? 'pending',
         tracking: o.shipment.tracking ?? undefined,
@@ -364,5 +380,6 @@ export async function getOrders() {
       }
       : undefined,
     invoice: (o.invoice as any) ?? undefined,
+    createdAt: o.createdAt,
   }));
 }
