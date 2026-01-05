@@ -84,6 +84,7 @@ export async function POST(req: Request) {
           const order = await prisma.order.update({
             where: { id: externalRef },
             data: orderUpdateData,
+            include: { items: true }, // Incluir items para crear Sales
           });
 
           // Crear o actualizar registro de Payment
@@ -100,17 +101,49 @@ export async function POST(req: Request) {
               raw: payment as any,
             },
           });
+
+          // ========== Crear registros en Sale cuando el pago es APROBADO ==========
+          if (status === 'approved' && order.items.length > 0) {
+            const paymentDate = payment.date_approved
+              ? new Date(payment.date_approved as string)
+              : new Date();
+
+            // Crear una venta por cada item de la orden
+            for (const item of order.items) {
+              // Verificar si ya existe un Sale para este item (evitar duplicados)
+              const existingSale = await prisma.sale.findFirst({
+                where: {
+                  note: { contains: `MP:${order.id}:${item.id}` },
+                },
+              });
+
+              if (!existingSale) {
+                await prisma.sale.create({
+                  data: {
+                    name: item.nameSnapshot,
+                    quantity: item.quantity,
+                    costUnit: new Prisma.Decimal(0), // Costo se puede actualizar manualmente
+                    priceUnit: item.priceSnapshot,
+                    date: paymentDate,
+                    note: `Venta online MP - Orden #${order.id.slice(0, 8)} | MP:${order.id}:${item.id}`,
+                    channel: 'online',
+                  },
+                });
+              }
+            }
+          }
         } catch (e) {
           console.warn('No se pudo actualizar orden por externalRef:', externalRef, e);
         }
       }
 
       // Actualizar por preferenceId (fallback)
-      if (preferenceId) {
+      if (preferenceId && !externalRef) {
         try {
           const order = await prisma.order.update({
             where: { mpPreferenceId: preferenceId },
             data: orderUpdateData,
+            include: { items: true },
           });
 
           // Crear o actualizar registro de Payment
@@ -127,6 +160,35 @@ export async function POST(req: Request) {
               raw: payment as any,
             },
           });
+
+          // Crear registros en Sale cuando aprobado
+          if (status === 'approved' && order.items.length > 0) {
+            const paymentDate = payment.date_approved
+              ? new Date(payment.date_approved as string)
+              : new Date();
+
+            for (const item of order.items) {
+              const existingSale = await prisma.sale.findFirst({
+                where: {
+                  note: { contains: `MP:${order.id}:${item.id}` },
+                },
+              });
+
+              if (!existingSale) {
+                await prisma.sale.create({
+                  data: {
+                    name: item.nameSnapshot,
+                    quantity: item.quantity,
+                    costUnit: new Prisma.Decimal(0),
+                    priceUnit: item.priceSnapshot,
+                    date: paymentDate,
+                    note: `Venta online MP - Orden #${order.id.slice(0, 8)} | MP:${order.id}:${item.id}`,
+                    channel: 'online',
+                  },
+                });
+              }
+            }
+          }
         } catch (e) {
           console.warn('No se pudo actualizar orden por preferenceId:', preferenceId, e);
         }
