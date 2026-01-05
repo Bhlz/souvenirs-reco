@@ -1,16 +1,42 @@
-import { getAllProducts, saveProducts, getOrders } from '@/lib/store';
+import { prisma } from '@/lib/db';
 
 export async function debitStockForOrderIfNeeded(orderId: string) {
-  const orders = await getOrders();
-  const order = orders.find(o => o.id === orderId);
-  if (!order) return;
-  const debited = order?.raw?.stockDebited;
-  if (debited) return;
+  // Find the order
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: { items: true },
+  });
 
-  const products = await getAllProducts();
+  if (!order) return;
+
+  // Check if stock was already debited (stored in raw JSON)
+  const raw = order.raw as Record<string, unknown> | null;
+  if (raw?.stockDebited) return;
+
+  // Debit stock for each item from SKU
   for (const item of order.items) {
-    const p = products.find(pp => pp.slug === item.slug);
-    if (p) p.stock = Math.max(0, (p.stock ?? 0) - item.qty);
+    if (item.skuId) {
+      // Get current stock from SKU
+      const sku = await prisma.productSku.findUnique({
+        where: { id: item.skuId },
+        select: { stock: true },
+      });
+      if (sku) {
+        await prisma.productSku.update({
+          where: { id: item.skuId },
+          data: {
+            stock: Math.max(0, sku.stock - item.quantity),
+          },
+        });
+      }
+    }
   }
-  await saveProducts(products);
+
+  // Mark as debited
+  await prisma.order.update({
+    where: { id: orderId },
+    data: {
+      raw: { ...(raw || {}), stockDebited: true },
+    },
+  });
 }
