@@ -132,26 +132,37 @@ export default function Header() {
             <a href="#faq" className="transition-colors duration-200 hover:text-brand">FAQ</a>
           </nav>
 
-          {/* Carrito con badge y vibración */}
-        <Link
-  href="/cart"
-  aria-label="Ir al carrito"
-  className="relative inline-flex items-center gap-2 rounded-full border bg-white/80 px-3 py-2 shadow-sm ring-1 ring-black/5 backdrop-blur transition hover:-translate-y-0.5 hover:shadow"
-  style={{ animation: bump ? 'cart-shake 650ms ease' : undefined }}
-  title="Carrito"
->
-  <ShoppingCart className="h-5 w-5" />
-  <span>Carrito</span>
-  {count > 0 && (
-    <span
-      id="cart-badge"
-      className="absolute -right-1 -top-1 min-w-[18px] rounded-full bg-pink-600 px-1 text-center text-[11px] font-bold leading-[18px] text-white shadow ring-2 ring-white"
-      style={{ height: 18 }}
-    >
-      {badgeText}
-    </span>
-  )}
-</Link>
+          {/* Botones de acción: Catálogo (móvil) + Carrito */}
+          <div className="flex items-center gap-2">
+            {/* Botón Catálogo - visible solo en móvil */}
+            <Link
+              href="/catalogo"
+              className="inline-flex items-center gap-1.5 rounded-full border bg-white/80 px-3 py-2 text-sm font-medium shadow-sm ring-1 ring-black/5 backdrop-blur transition hover:-translate-y-0.5 hover:shadow md:hidden"
+            >
+              Catálogo
+            </Link>
+
+            {/* Carrito con badge y vibración */}
+            <Link
+              href="/cart"
+              aria-label="Ir al carrito"
+              className="relative inline-flex items-center gap-2 rounded-full border bg-white/80 px-3 py-2 shadow-sm ring-1 ring-black/5 backdrop-blur transition hover:-translate-y-0.5 hover:shadow"
+              style={{ animation: bump ? 'cart-shake 650ms ease' : undefined }}
+              title="Carrito"
+            >
+              <ShoppingCart className="h-5 w-5" />
+              <span className="hidden sm:inline">Carrito</span>
+              {count > 0 && (
+                <span
+                  id="cart-badge"
+                  className="absolute -right-1 -top-1 min-w-[18px] rounded-full bg-pink-600 px-1 text-center text-[11px] font-bold leading-[18px] text-white shadow ring-2 ring-white"
+                  style={{ height: 18 }}
+                >
+                  {badgeText}
+                </span>
+              )}
+            </Link>
+          </div>
 
         </div>
       </header>

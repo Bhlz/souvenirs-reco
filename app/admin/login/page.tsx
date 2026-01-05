@@ -1,6 +1,5 @@
 'use client';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Lock, ShieldCheck } from 'lucide-react';
 
 export default function AdminLogin() {
@@ -8,7 +7,6 @@ export default function AdminLogin() {
   const [err, setErr] = useState<string | null>(null);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -26,7 +24,9 @@ export default function AdminLogin() {
 
       if (res.ok) {
         if (Array.isArray(body.warnings)) setWarnings(body.warnings.filter(Boolean));
-        router.replace('/admin');
+        // Usar navegación completa para asegurar que la cookie esté procesada
+        // router.replace() puede navegar antes de que el navegador procese la cookie
+        window.location.href = '/admin';
       } else {
         setErr(body.message || 'Contraseña incorrecta o ADMIN_PASSWORD sin configurar');
       }

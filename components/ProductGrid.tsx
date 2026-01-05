@@ -11,7 +11,7 @@ export default function ProductGrid({ products }: { products: Product[] }) {
   const [loading, setLoading] = useState(false);
   const [q, setQ] = useState('');
   const [cat, setCat] = useState<string>('all');
-  const [sort, setSort] = useState<'relevance'|'price_asc'|'price_desc'|'rating_desc'>('relevance');
+  const [sort, setSort] = useState<'relevance' | 'price_asc' | 'price_desc' | 'rating_desc'>('relevance');
   const [quick, setQuick] = useState<Product | null>(null);
 
   useEffect(() => { setList(products); }, [products]);
@@ -33,9 +33,9 @@ export default function ProductGrid({ products }: { products: Product[] }) {
     }
     if (cat !== 'all') data = data.filter(p => p.category === cat);
     switch (sort) {
-      case 'price_asc': data.sort((a,b)=>a.price-b.price); break;
-      case 'price_desc': data.sort((a,b)=>b.price-a.price); break;
-      case 'rating_desc': data.sort((a,b)=>(b.rating??0)-(a.rating??0)); break;
+      case 'price_asc': data.sort((a, b) => a.price - b.price); break;
+      case 'price_desc': data.sort((a, b) => b.price - a.price); break;
+      case 'rating_desc': data.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0)); break;
       default: break;
     }
     return data;
@@ -50,12 +50,12 @@ export default function ProductGrid({ products }: { products: Product[] }) {
             className="input w-full max-w-sm"
             placeholder="Buscar productos…"
             value={q}
-            onChange={e=>setQ(e.target.value)}
+            onChange={e => setQ(e.target.value)}
           />
-          <select className="input" value={cat} onChange={e=>setCat(e.target.value)}>
-            {categories.map(c=> <option key={c} value={c}>{c==='all'?'Todas las categorías':c}</option>)}
+          <select className="input" value={cat} onChange={e => setCat(e.target.value)}>
+            {categories.map(c => <option key={c} value={c}>{c === 'all' ? 'Todas las categorías' : c}</option>)}
           </select>
-          <select className="input" value={sort} onChange={e=>setSort(e.target.value as any)}>
+          <select className="input" value={sort} onChange={e => setSort(e.target.value as any)}>
             <option value="relevance">Relevancia</option>
             <option value="price_asc">Precio: menor a mayor</option>
             <option value="price_desc">Precio: mayor a menor</option>
@@ -66,19 +66,19 @@ export default function ProductGrid({ products }: { products: Product[] }) {
       </div>
 
       {/* Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
         {loading
-          ? SKELETONS.map((_,i)=>(
-              <div key={i} className="animate-pulse rounded-2xl border p-3">
-                <div className="aspect-[4/3] w-full rounded-xl bg-neutral-200" />
-                <div className="mt-3 h-4 w-3/4 rounded bg-neutral-200" />
-                <div className="mt-2 h-3 w-1/2 rounded bg-neutral-200" />
-                <div className="mt-3 h-9 w-full rounded bg-neutral-200" />
-              </div>
-            ))
+          ? SKELETONS.map((_, i) => (
+            <div key={i} className="animate-pulse rounded-2xl border p-3">
+              <div className="aspect-[4/3] w-full rounded-xl bg-neutral-200" />
+              <div className="mt-3 h-4 w-3/4 rounded bg-neutral-200" />
+              <div className="mt-2 h-3 w-1/2 rounded bg-neutral-200" />
+              <div className="mt-3 h-9 w-full rounded bg-neutral-200" />
+            </div>
+          ))
           : filtered.map(p => (
-              <ProductCard key={p.slug} p={p} onQuickView={setQuick} />
-            ))
+            <ProductCard key={p.slug} p={p} onQuickView={setQuick} />
+          ))
         }
       </div>
 
@@ -86,11 +86,11 @@ export default function ProductGrid({ products }: { products: Product[] }) {
       {quick && (
         <div
           className="fixed inset-0 z-40 grid place-items-center bg-black/40 p-4"
-          onClick={()=>setQuick(null)}
+          onClick={() => setQuick(null)}
         >
           <div
             className="card w-full max-w-3xl overflow-hidden"
-            onClick={e=>e.stopPropagation()}
+            onClick={e => e.stopPropagation()}
           >
             <div className="grid gap-4 md:grid-cols-2">
               <div className="relative aspect-square w-full overflow-hidden rounded-xl">
@@ -117,10 +117,10 @@ export default function ProductGrid({ products }: { products: Product[] }) {
                 </div>
                 {quick.description && <p className="mt-3 text-sm text-neutral-700">{quick.description}</p>}
                 <div className="mt-4 flex items-center gap-2">
-                  <button className="btn-primary flex-1" onClick={()=>{ addToCart(quick.slug,1); setQuick(null); }}>
+                  <button className="btn-primary flex-1" onClick={() => { addToCart(quick.slug, 1); setQuick(null); }}>
                     Agregar al carrito
                   </button>
-                  <button className="btn" onClick={()=>setQuick(null)}>Cerrar</button>
+                  <button className="btn" onClick={() => setQuick(null)}>Cerrar</button>
                 </div>
               </div>
             </div>
