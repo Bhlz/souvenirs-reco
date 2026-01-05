@@ -86,8 +86,8 @@ export default function RealtimeDashboard({ initial }: { initial: Overview }) {
               {error
                 ? 'sin conexión'
                 : isLoading
-                ? 'actualizando...'
-                : `sincronizado hace ${Math.max(1, Math.round((Date.now() - (overview.updatedAt || Date.now())) / 1000))}s`}
+                  ? 'actualizando...'
+                  : `sincronizado hace ${Math.max(1, Math.round((Date.now() - (overview.updatedAt || Date.now())) / 1000))}s`}
             </span>
           </div>
         </div>
@@ -105,24 +105,30 @@ export default function RealtimeDashboard({ initial }: { initial: Overview }) {
           value={currency(metrics.totalRevenue)}
           icon={<TrendingUp className="h-5 w-5 text-emerald-600" />}
           helper={`${metrics.ordersCount} órdenes registradas`}
+          index={0}
+          trend="up"
         />
         <StatCard
           title="Órdenes activas"
           value={metrics.pendingOrders}
           icon={<Clock3 className="h-5 w-5 text-amber-600" />}
           helper="Pendientes o en proceso"
+          index={1}
         />
         <StatCard
           title="Enviadas"
           value={metrics.shippedOrders}
           icon={<ShoppingCart className="h-5 w-5 text-sky-600" />}
           helper="Marcadas como enviadas"
+          index={2}
+          trend="up"
         />
         <StatCard
           title="Catálogo"
           value={metrics.productCount}
           icon={<Package className="h-5 w-5 text-slate-700" />}
           helper="Productos publicados"
+          index={3}
         />
       </section>
 
@@ -286,21 +292,42 @@ function StatCard({
   value,
   icon,
   helper,
+  index = 0,
+  trend,
 }: {
   title: string;
   value: string | number;
   icon: ReactNode;
   helper?: string;
+  index?: number;
+  trend?: 'up' | 'down' | 'neutral';
 }) {
+  const delayClass = `delay-${index}`;
+  const trendColors = {
+    up: 'text-emerald-600',
+    down: 'text-red-500',
+    neutral: 'text-slate-500',
+  };
+  const trendIcon = trend === 'up' ? '↑' : trend === 'down' ? '↓' : '';
+
   return (
-    <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
+    <div className={`stat-card rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100 animate-fade-in-up ${delayClass}`}>
       <div className="flex items-center justify-between">
-        <div className="rounded-full bg-slate-100 p-2">{icon}</div>
-        <div className="text-xs uppercase tracking-[0.12em] text-slate-500">Tiempo real</div>
+        <div className="rounded-full bg-gradient-to-br from-slate-50 to-slate-100 p-2.5 shadow-sm">{icon}</div>
+        <div className="flex items-center gap-1.5">
+          {trend && (
+            <span className={`text-xs font-bold ${trendColors[trend]}`}>
+              {trendIcon}
+            </span>
+          )}
+          <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] uppercase tracking-[0.12em] font-semibold text-emerald-600">
+            En vivo
+          </span>
+        </div>
       </div>
-      <div className="mt-3 text-sm font-semibold text-slate-800">{title}</div>
-      <div className="text-2xl font-bold text-slate-900">{value}</div>
-      {helper && <div className="text-xs text-slate-500">{helper}</div>}
+      <div className="mt-3 text-sm font-semibold text-slate-600">{title}</div>
+      <div className="text-2xl font-bold text-slate-900 animate-count-up">{value}</div>
+      {helper && <div className="mt-1 text-xs text-slate-500">{helper}</div>}
     </div>
   );
 }

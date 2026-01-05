@@ -1,7 +1,6 @@
 import { NextRequest } from 'next/server';
-import { addSale, getSales, Sale, updateSale } from '@/lib/sales';
+import { addSale, deleteSale, getSales, Sale, updateSale } from '@/lib/sales';
 import { ADMIN_COOKIE, verifyAdminToken } from '@/lib/admin-auth';
-import crypto from 'crypto';
 
 async function ensureAuth(req: NextRequest) {
   const token = req.cookies.get(ADMIN_COOKIE)?.value;
@@ -17,14 +16,14 @@ const toLocalDateISOString = (input: any) => {
   return local.toISOString();
 };
 
-const normalize = (raw: any): Sale => {
+const normalize = (raw: any): Omit<Sale, 'id'> & { id?: string } => {
   const quantity = Number(raw?.quantity ?? 0);
   const cost = Number(raw?.cost ?? 0);
   const price = Number(raw?.price ?? 0);
   const dateStr = toLocalDateISOString(raw?.date);
 
   return {
-    id: raw?.id || crypto.randomUUID(),
+    id: raw?.id || undefined,
     name: (raw?.name ?? '').toString().trim(),
     quantity: Number.isFinite(quantity) ? quantity : 0,
     cost: Number.isFinite(cost) ? cost : 0,
@@ -34,18 +33,24 @@ const normalize = (raw: any): Sale => {
   };
 };
 
-const isValid = (s: Sale) => s.name && s.quantity > 0 && s.price >= 0 && s.cost >= 0;
+const isValid = (s: Omit<Sale, 'id'>) => s.name && s.quantity > 0 && s.price >= 0 && s.cost >= 0;
 
+// GET - Obtener todas las ventas
 export async function GET(req: NextRequest) {
   try {
     await ensureAuth(req);
     const sales = await getSales();
     return Response.json({ sales });
-  } catch {
-    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  } catch (e) {
+    if ((e as Error).message === 'unauthorized') {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    console.error('[admin:sales:GET]', e);
+    return Response.json({ error: 'Error al cargar ventas' }, { status: 500 });
   }
 }
 
+// POST - Crear nueva venta
 export async function POST(req: NextRequest) {
   try {
     await ensureAuth(req);
@@ -53,29 +58,55 @@ export async function POST(req: NextRequest) {
     if (!isValid(payload)) {
       return Response.json({ error: 'Campos incompletos' }, { status: 400 });
     }
-    await addSale(payload);
-    return Response.json({ ok: true, sale: payload });
+    const sale = await addSale(payload);
+    return Response.json({ ok: true, sale });
   } catch (e) {
-    if ((e as Error).message === 'unauthorized')
+    if ((e as Error).message === 'unauthorized') {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     console.error('[admin:sales:POST]', e);
     return Response.json({ error: 'Error al guardar venta' }, { status: 500 });
   }
 }
 
+// PUT - Actualizar venta existente
 export async function PUT(req: NextRequest) {
   try {
     await ensureAuth(req);
-    const payload = normalize(await req.json());
-    if (!payload.id || !isValid(payload)) {
+    const raw = await req.json();
+    const payload = normalize(raw);
+    if (!raw.id || !isValid(payload)) {
       return Response.json({ error: 'Campos incompletos' }, { status: 400 });
     }
-    await updateSale(payload);
-    return Response.json({ ok: true, sale: payload });
+    const sale = await updateSale({ ...payload, id: raw.id } as Sale);
+    return Response.json({ ok: true, sale });
   } catch (e) {
-    if ((e as Error).message === 'unauthorized')
+    if ((e as Error).message === 'unauthorized') {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     console.error('[admin:sales:PUT]', e);
     return Response.json({ error: 'Error al actualizar venta' }, { status: 500 });
+  }
+}
+
+// DELETE - Eliminar venta
+export async function DELETE(req: NextRequest) {
+  try {
+    await ensureAuth(req);
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return Response.json({ error: 'ID requerido' }, { status: 400 });
+    }
+
+    await deleteSale(id);
+    return Response.json({ ok: true });
+  } catch (e) {
+    if ((e as Error).message === 'unauthorized') {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    console.error('[admin:sales:DELETE]', e);
+    return Response.json({ error: 'Error al eliminar venta' }, { status: 500 });
   }
 }

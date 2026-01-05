@@ -1,4 +1,5 @@
 'use client';
+import React from 'react';
 import useSWR from 'swr';
 import { useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
@@ -163,6 +164,21 @@ export default function SalesPage() {
     }
   };
 
+  const onDelete = async (sale: Sale) => {
+    if (!confirm(`¿Eliminar la venta "${sale.name}"? Esta acción no se puede deshacer.`)) {
+      return;
+    }
+    const res = await fetch(`/api/admin/sales?id=${sale.id}`, {
+      method: 'DELETE',
+    });
+    if (res.ok) {
+      toast('Venta eliminada');
+      mutate();
+    } else {
+      toast('Error al eliminar venta');
+    }
+  };
+
   const currency = (n: number) =>
     n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 
@@ -194,9 +210,8 @@ export default function SalesPage() {
                 <button
                   key={key}
                   onClick={() => setRange(key)}
-                  className={`rounded-full px-3 py-2 text-sm transition ${
-                    range === key ? 'bg-slate-900 text-white shadow' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                  }`}
+                  className={`rounded-full px-3 py-2 text-sm transition ${range === key ? 'bg-slate-900 text-white shadow' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
                 >
                   {key === 'today' ? 'Hoy' : key === 'month' ? 'Mes' : 'Fecha'}
                 </button>
@@ -234,66 +249,146 @@ export default function SalesPage() {
               <div>
                 <h2 className="text-lg font-semibold text-slate-900">Registrar venta</h2>
                 <p className="text-sm text-slate-500">
-                  {editingId ? 'Edita los datos y guarda cambios.' : 'Costo, precio de venta y utilidad calculada.'}
+                  {editingId ? 'Edita los datos y guarda cambios.' : 'Registra una venta manual o de tienda física.'}
                 </p>
               </div>
               <div className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
                 {editingId ? 'Editando' : 'Ticket físico'}
               </div>
             </div>
-            <form onSubmit={submit} className="mt-4 space-y-3">
-              <input
-                className="input"
-                placeholder="Nombre del producto/venta"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                required
-              />
-              <div className="grid grid-cols-2 gap-3">
+            <form onSubmit={submit} className="mt-5 space-y-4">
+              {/* Nombre del producto */}
+              <div className="space-y-1.5">
+                <label className="flex items-center text-sm font-medium text-slate-700">
+                  Nombre del producto
+                  <span className="tooltip-trigger">
+                    ?
+                    <span className="tooltip-content">
+                      Identificador de la venta. Puede ser el nombre del producto o una descripción (ej: "Alebrije grande rojo", "3 llaveros mixtos")
+                    </span>
+                  </span>
+                </label>
                 <input
                   className="input"
-                  type="number"
-                  min={1}
-                  placeholder="Cantidad"
-                  value={form.quantity}
-                  onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) || 1 })}
-                  required
-                />
-                <input
-                  className="input"
-                  type="date"
-                  value={form.date}
-                  onChange={(e) => setForm({ ...form, date: e.target.value })}
+                  placeholder="Ej: Alebrije mediano color azul"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
                   required
                 />
               </div>
+
+              {/* Cantidad y Fecha */}
               <div className="grid grid-cols-2 gap-3">
-                <input
+                <div className="space-y-1.5">
+                  <label className="flex items-center text-sm font-medium text-slate-700">
+                    Cantidad
+                    <span className="tooltip-trigger">
+                      ?
+                      <span className="tooltip-content">
+                        Número de unidades vendidas en esta transacción
+                      </span>
+                    </span>
+                  </label>
+                  <input
+                    className="input"
+                    type="number"
+                    min={1}
+                    placeholder="1"
+                    value={form.quantity}
+                    onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) || 1 })}
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-slate-700">Fecha de venta</label>
+                  <input
+                    className="input"
+                    type="date"
+                    value={form.date}
+                    onChange={(e) => setForm({ ...form, date: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Costo y Precio */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="flex items-center text-sm font-medium text-slate-700">
+                    Costo unitario
+                    <span className="tooltip-trigger">
+                      ?
+                      <span className="tooltip-content">
+                        Lo que te costó adquirir o producir CADA unidad. Sirve para calcular tu utilidad real.
+                      </span>
+                    </span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">$</span>
+                    <input
+                      className="input pl-7"
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      placeholder="0.00"
+                      value={form.cost}
+                      onChange={(e) => setForm({ ...form, cost: Number(e.target.value) || 0 })}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="flex items-center text-sm font-medium text-slate-700">
+                    Precio de venta
+                    <span className="tooltip-trigger">
+                      ?
+                      <span className="tooltip-content">
+                        Precio al que vendiste CADA unidad al cliente. La utilidad se calcula como: (Precio - Costo) × Cantidad
+                      </span>
+                    </span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">$</span>
+                    <input
+                      className="input pl-7"
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      placeholder="0.00"
+                      value={form.price}
+                      onChange={(e) => setForm({ ...form, price: Number(e.target.value) || 0 })}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Utilidad calculada (preview) */}
+              {form.price > 0 && (
+                <div className="rounded-xl bg-emerald-50 px-4 py-3 border border-emerald-100">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-emerald-700">Utilidad estimada:</span>
+                    <span className="text-lg font-bold text-emerald-700">
+                      {((form.price - form.cost) * form.quantity).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}
+                    </span>
+                  </div>
+                  <p className="text-xs text-emerald-600 mt-1">
+                    ({currency(form.price)} - {currency(form.cost)}) × {form.quantity} uds
+                  </p>
+                </div>
+              )}
+
+              {/* Nota opcional */}
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-slate-700 field-optional">Nota</label>
+                <textarea
                   className="input"
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  placeholder="Costo unitario"
-                  value={form.cost}
-                  onChange={(e) => setForm({ ...form, cost: Number(e.target.value) || 0 })}
-                />
-                <input
-                  className="input"
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  placeholder="Precio venta"
-                  value={form.price}
-                  onChange={(e) => setForm({ ...form, price: Number(e.target.value) || 0 })}
-                  required
+                  rows={2}
+                  placeholder="Información adicional: cliente, método de pago, etc."
+                  value={form.note}
+                  onChange={(e) => setForm({ ...form, note: e.target.value })}
                 />
               </div>
-              <textarea
-                className="input"
-                placeholder="Nota (opcional)"
-                value={form.note}
-                onChange={(e) => setForm({ ...form, note: e.target.value })}
-              />
+
               <button
                 className="btn-primary w-full justify-center"
                 type="submit"
@@ -398,12 +493,20 @@ export default function SalesPage() {
                     <td className="px-3 py-2 font-semibold text-emerald-700">{currency(profit)}</td>
                     <td className="px-3 py-2 text-slate-500">{s.note || '—'}</td>
                     <td className="px-3 py-2 text-right">
-                      <button
-                        className="text-sm text-brand underline-offset-4 hover:underline"
-                        onClick={() => onEdit(s)}
-                      >
-                        Editar
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          className="text-sm text-brand underline-offset-4 hover:underline"
+                          onClick={() => onEdit(s)}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          className="text-sm text-red-600 underline-offset-4 hover:underline"
+                          onClick={() => onDelete(s)}
+                        >
+                          Eliminar
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -419,53 +522,187 @@ export default function SalesPage() {
 type Bar = { label: string; revenue: number };
 
 function BarChart({ bars, currency }: { bars: Bar[]; currency: (n: number) => string }) {
-  const max = Math.max(...bars.map((b) => b.revenue), 0);
+  const [hoveredIndex, setHoveredIndex] = React.useState<number | null>(null);
+  const max = Math.max(...bars.map((b) => b.revenue), 1);
+  const total = bars.reduce((sum, b) => sum + b.revenue, 0);
+  const chartWidth = 100;
+  const chartHeight = 180;
+  const padding = { top: 20, right: 10, bottom: 30, left: 10 };
+  const innerWidth = chartWidth - padding.left - padding.right;
+  const innerHeight = chartHeight - padding.top - padding.bottom;
 
   if (bars.length === 0) {
     return (
-      <div className="h-56 rounded-xl border border-white/10 bg-white/5 p-4 text-center text-sm text-white/70">
-        Sin datos en el rango seleccionado.
+      <div className="h-56 rounded-xl border border-white/10 bg-white/5 p-4 text-center text-sm text-white/70 flex items-center justify-center">
+        <div>
+          <svg className="mx-auto h-12 w-12 text-white/30 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          Sin datos en el rango seleccionado
+        </div>
       </div>
     );
   }
 
+  // Generate points for the line/area
+  const points = bars.map((bar, i) => {
+    const x = padding.left + (i / (bars.length - 1 || 1)) * innerWidth;
+    const y = padding.top + innerHeight - (bar.revenue / max) * innerHeight;
+    return { x, y, ...bar, index: i };
+  });
+
+  // Create SVG path for smooth curve (using bezier curves)
+  const linePath = points.reduce((path, point, i) => {
+    if (i === 0) return `M ${point.x},${point.y}`;
+    const prev = points[i - 1];
+    const cp1x = prev.x + (point.x - prev.x) / 3;
+    const cp2x = prev.x + 2 * (point.x - prev.x) / 3;
+    return `${path} C ${cp1x},${prev.y} ${cp2x},${point.y} ${point.x},${point.y}`;
+  }, '');
+
+  // Area path (closes the line to bottom)
+  const areaPath = `${linePath} L ${points[points.length - 1].x},${padding.top + innerHeight} L ${points[0].x},${padding.top + innerHeight} Z`;
+
+  // Grid lines
+  const gridLines = [0.25, 0.5, 0.75, 1].map((pct) => ({
+    y: padding.top + innerHeight * (1 - pct),
+    value: max * pct,
+  }));
+
   return (
-    <>
-      <div className="flex h-56 items-end gap-3">
-        {bars.map((bar, idx) => {
-          const height = max > 0 ? Math.max(10, (bar.revenue / max) * 180) : 10;
-          return (
-            <div key={bar.label} className="flex flex-1 flex-col items-center gap-2">
-              <div className="flex w-full flex-1 items-end">
-                <div
-                  className="bar-fill w-full rounded-md bg-gradient-to-t from-emerald-500 to-emerald-300 shadow-lg shadow-emerald-700/20 ring-1 ring-white/20"
-                  style={{ height, animationDelay: `${idx * 80}ms` }}
-                  title={currency(bar.revenue)}
-                />
-              </div>
-              <div className="text-[11px] font-semibold text-white/80">{bar.label}</div>
-              <div className="text-[11px] text-amber-100">{currency(bar.revenue)}</div>
-            </div>
-          );
-        })}
+    <div className="relative">
+      {/* Header with total */}
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <div className="text-3xl font-bold text-white animate-count-up">{currency(total)}</div>
+          <div className="text-xs text-white/60 mt-1">Total en el período</div>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></div>
+          <span className="text-xs text-emerald-300 font-medium">Actualizado</span>
+        </div>
       </div>
-      <style jsx>{`
-        .bar-fill {
-          transform-origin: bottom;
-          animation: growBar 700ms ease-out forwards;
-        }
-        @keyframes growBar {
-          from {
-            transform: scaleY(0);
-            opacity: 0.5;
-          }
-          to {
-            transform: scaleY(1);
-            opacity: 1;
-          }
-        }
-      `}</style>
-    </>
+
+      {/* SVG Chart */}
+      <svg
+        viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+        className="w-full h-48"
+        preserveAspectRatio="none"
+      >
+        <defs>
+          {/* Gradient for area fill */}
+          <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="rgb(16, 185, 129)" stopOpacity="0.4" />
+            <stop offset="50%" stopColor="rgb(16, 185, 129)" stopOpacity="0.15" />
+            <stop offset="100%" stopColor="rgb(16, 185, 129)" stopOpacity="0" />
+          </linearGradient>
+          {/* Gradient for line */}
+          <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="rgb(52, 211, 153)" />
+            <stop offset="50%" stopColor="rgb(16, 185, 129)" />
+            <stop offset="100%" stopColor="rgb(5, 150, 105)" />
+          </linearGradient>
+          {/* Glow filter */}
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="1" result="coloredBlur" />
+            <feMerge>
+              <feMergeNode in="coloredBlur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
+        {/* Grid lines */}
+        {gridLines.map((line, i) => (
+          <g key={i}>
+            <line
+              x1={padding.left}
+              y1={line.y}
+              x2={chartWidth - padding.right}
+              y2={line.y}
+              className="chart-grid-line"
+            />
+            <text
+              x={chartWidth - padding.right + 2}
+              y={line.y}
+              className="fill-white/40 text-[3px]"
+              dominantBaseline="middle"
+            >
+              {currency(line.value).replace('MX$', '')}
+            </text>
+          </g>
+        ))}
+
+        {/* Area fill */}
+        <path
+          d={areaPath}
+          fill="url(#areaGradient)"
+          className="chart-area"
+        />
+
+        {/* Main line */}
+        <path
+          d={linePath}
+          fill="none"
+          stroke="url(#lineGradient)"
+          strokeWidth="0.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          filter="url(#glow)"
+          className="chart-line"
+        />
+
+        {/* Data points */}
+        {points.map((point, i) => (
+          <g key={i}>
+            <circle
+              cx={point.x}
+              cy={point.y}
+              r={hoveredIndex === i ? 2.5 : 1.5}
+              className={`transition-all duration-200 ${hoveredIndex === i
+                ? 'fill-white stroke-emerald-400 stroke-1'
+                : 'fill-emerald-400 stroke-none'
+                }`}
+              style={{ animationDelay: `${i * 100}ms` }}
+              onMouseEnter={() => setHoveredIndex(i)}
+              onMouseLeave={() => setHoveredIndex(null)}
+            />
+            {/* X-axis labels */}
+            <text
+              x={point.x}
+              y={chartHeight - 8}
+              textAnchor="middle"
+              className="fill-white/60 text-[3px] font-medium"
+            >
+              {point.label}
+            </text>
+          </g>
+        ))}
+      </svg>
+
+      {/* Tooltip */}
+      {hoveredIndex !== null && points[hoveredIndex] && (
+        <div
+          className="chart-tooltip visible"
+          style={{
+            left: `${(points[hoveredIndex].x / chartWidth) * 100}%`,
+            bottom: '75%',
+            transform: 'translateX(-50%)',
+          }}
+        >
+          <div className="text-emerald-600 font-bold">{currency(points[hoveredIndex].revenue)}</div>
+          <div className="text-slate-500 text-xs">{points[hoveredIndex].label}</div>
+        </div>
+      )}
+
+      {/* Legend */}
+      <div className="flex items-center justify-center gap-4 mt-4 text-xs">
+        <div className="flex items-center gap-2">
+          <div className="h-2 w-6 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
+          <span className="text-white/60">Ingresos por período</span>
+        </div>
+      </div>
+    </div>
   );
 }
 

@@ -1,10 +1,28 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, PackagePlus, Save, Undo2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Loader2, PackagePlus, Save, Undo2, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
 import ImageListInput from '../../_components/ImageListInput';
 import { Product, VariantGroup } from '@/lib/types';
 import { toast } from '@/lib/toast';
+
+// Genera un slug desde el nombre
+const generateSlug = (name: string): string => {
+  return name
+    .toLowerCase()
+    .normalize('NFD') // Descomponer caracteres acentuados
+    .replace(/[\u0300-\u036f]/g, '') // Remover acentos
+    .replace(/[^a-z0-9\s-]/g, '') // Solo letras, números, espacios y guiones
+    .replace(/\s+/g, '-') // Espacios a guiones
+    .replace(/-+/g, '-') // Múltiples guiones a uno
+    .replace(/^-|-$/g, ''); // Remover guiones al inicio/final
+};
+
+// Tipo para el estado de validación
+type ValidationState = {
+  isValid: boolean;
+  message?: string;
+};
 
 type Mode = 'create' | 'edit';
 
@@ -136,15 +154,64 @@ export default function ProductForm({ initialProduct, mode }: { initialProduct?:
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [bundleInput, setBundleInput] = useState('');
+  const [autoSlug, setAutoSlug] = useState(mode === 'create'); // Auto-sync slug with name
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false); // Track if user tried to submit
+  const [variantsOpen, setVariantsOpen] = useState(false);
+  const [pricesOpen, setPricesOpen] = useState(false);
+  const [bundlesOpen, setBundlesOpen] = useState(false);
 
   useEffect(() => {
     setDraft(toDraft(initialProduct));
-  }, [initialProduct?.slug]);
+    setAutoSlug(mode === 'create');
+  }, [initialProduct?.slug, mode]);
 
   const isEdit = mode === 'edit';
 
+  // Progress calculation
+  const progress = useMemo(() => {
+    const checks = {
+      hasName: draft.name.trim().length > 0,
+      hasSlug: draft.slug.trim().length > 0,
+      hasPrice: Number(draft.price) > 0,
+      hasImage: draft.images.length > 0,
+    };
+    const completed = Object.values(checks).filter(Boolean).length;
+    const total = Object.keys(checks).length;
+    const percent = Math.round((completed / total) * 100);
+
+    const missing: string[] = [];
+    if (!checks.hasName) missing.push('nombre');
+    if (!checks.hasSlug) missing.push('slug');
+    if (!checks.hasPrice) missing.push('precio');
+    if (!checks.hasImage) missing.push('imagen');
+
+    return { percent, completed, total, missing, isComplete: completed === total };
+  }, [draft.name, draft.slug, draft.price, draft.images]);
+
   const setField = <K extends keyof ProductDraft>(key: K, value: ProductDraft[K]) =>
     setDraft((prev) => ({ ...prev, [key]: value }));
+
+  // Handle name change with auto-slug
+  const handleNameChange = (name: string) => {
+    setField('name', name);
+    if (autoSlug) {
+      setField('slug', generateSlug(name));
+    }
+  };
+
+  // Handle slug change (disable auto if manually edited)
+  const handleSlugChange = (slug: string) => {
+    setField('slug', slug);
+    if (autoSlug && slug !== generateSlug(draft.name)) {
+      setAutoSlug(false);
+    }
+  };
+
+  // Re-enable auto-slug
+  const enableAutoSlug = () => {
+    setAutoSlug(true);
+    setField('slug', generateSlug(draft.name));
+  };
 
   const onVariantsChange = (next: VariantGroup[]) =>
     setDraft((prev) => ({
@@ -155,13 +222,19 @@ export default function ProductForm({ initialProduct, mode }: { initialProduct?:
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAttemptedSubmit(true); // Trigger validation highlighting
+
     const payload = toPayload(draft);
     if (!payload.slug || !payload.name) {
-      setError('Slug y nombre son obligatorios');
+      setError('Completa nombre y slug antes de continuar');
+      return;
+    }
+    if (Number(payload.price) <= 0) {
+      setError('Agrega un precio válido');
       return;
     }
     if (!payload.images.length) {
-      setError('Agrega al menos una imagen');
+      setError('Agrega al menos una imagen del producto');
       return;
     }
 
@@ -217,14 +290,46 @@ export default function ProductForm({ initialProduct, mode }: { initialProduct?:
             <Undo2 className="mr-2 h-4 w-4" />
             Volver
           </button>
-          <button
-            type="button"
-            className="btn bg-slate-900 text-white hover:bg-slate-800"
-            onClick={() => router.push('/admin/products/new')}
-          >
-            <PackagePlus className="mr-2 h-4 w-4" />
-            Nuevo
-          </button>
+          {isEdit && (
+            <button
+              type="button"
+              className="btn bg-slate-900 text-white hover:bg-slate-800"
+              onClick={() => router.push('/admin/products/new')}
+            >
+              <PackagePlus className="mr-2 h-4 w-4" />
+              Nuevo
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Progress Indicator */}
+      <div className="mt-6 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            {progress.isComplete ? (
+              <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+            ) : (
+              <Sparkles className="h-5 w-5 text-amber-500" />
+            )}
+            <span className="text-sm font-semibold text-slate-900">
+              {progress.isComplete ? '¡Listo para publicar!' : `${progress.percent}% completado`}
+            </span>
+          </div>
+          {!progress.isComplete && (
+            <span className="text-xs text-slate-500">
+              Falta: {progress.missing.join(', ')}
+            </span>
+          )}
+        </div>
+        <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${progress.isComplete
+              ? 'bg-gradient-to-r from-emerald-400 to-emerald-500'
+              : 'bg-gradient-to-r from-amber-400 to-amber-500'
+              }`}
+            style={{ width: `${progress.percent}%` }}
+          />
         </div>
       </div>
 
@@ -234,31 +339,66 @@ export default function ProductForm({ initialProduct, mode }: { initialProduct?:
             <div>
               <h2 className="text-lg font-semibold text-slate-900">Datos principales</h2>
               <p className="text-sm text-slate-500">
-                Nombre, slug para la URL, categoría y descripción corta.
+                Nombre del producto, URL amigable, categoría y descripción.
               </p>
             </div>
           </div>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
+            {/* NOMBRE - Goes first */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Slug</label>
+              <label className="flex items-center gap-1 text-sm font-medium text-slate-700">
+                <span className="field-required">Nombre del producto</span>
+                {draft.name && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
+              </label>
               <input
-                className="input"
-                placeholder="alebrije-oaxaca"
-                value={draft.slug}
-                onChange={(e) => setField('slug', e.target.value)}
-                required
-              />
-              <p className="text-xs text-slate-500">Usa letras minúsculas, guiones y sin espacios.</p>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Nombre</label>
-              <input
-                className="input"
-                placeholder="Alebrije artesanal"
+                className={`input ${attemptedSubmit && !draft.name ? 'ring-2 ring-red-300' : ''}`}
+                placeholder="Ej: Alebrije artesanal Oaxaqueño"
                 value={draft.name}
-                onChange={(e) => setField('name', e.target.value)}
+                onChange={(e) => handleNameChange(e.target.value)}
                 required
               />
+              <p className="text-xs text-slate-500">Nombre visible en la tienda y catálogo.</p>
+            </div>
+
+            {/* SLUG - Goes second, auto-generated */}
+            <div className="space-y-2">
+              <label className="flex items-center gap-1 text-sm font-medium text-slate-700">
+                <span className="field-required">Slug (URL)</span>
+                <span className="tooltip-trigger">
+                  ?
+                  <span className="tooltip-content">
+                    Identificador único para la URL. Ejemplo: /product/alebrije-oaxaca
+                  </span>
+                </span>
+                {autoSlug && (
+                  <span className="ml-1 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
+                    Auto
+                  </span>
+                )}
+                {draft.slug && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
+              </label>
+              <div className="flex gap-2">
+                <input
+                  className={`input flex-1 ${attemptedSubmit && !draft.slug ? 'ring-2 ring-red-300' : ''}`}
+                  placeholder="alebrije-oaxaca"
+                  value={draft.slug}
+                  onChange={(e) => handleSlugChange(e.target.value)}
+                  required
+                />
+                {!autoSlug && (
+                  <button
+                    type="button"
+                    className="btn text-xs bg-blue-50 text-blue-700 hover:bg-blue-100"
+                    onClick={enableAutoSlug}
+                    title="Regenerar desde nombre"
+                  >
+                    Auto
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-slate-500">
+                {autoSlug ? 'Se genera automáticamente del nombre' : 'Editando manualmente'}
+              </p>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Categoría</label>
@@ -271,23 +411,41 @@ export default function ProductForm({ initialProduct, mode }: { initialProduct?:
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Rating (opcional)</label>
+                <label className="flex items-center text-sm font-medium text-slate-700">
+                  <span className="field-optional">Rating</span>
+                  <span className="tooltip-trigger">
+                    ?
+                    <span className="tooltip-content">
+                      Calificación promedio del producto (0-5 estrellas). Se mostrará en la tienda. Déjalo vacío si aún no tienes reseñas.
+                    </span>
+                  </span>
+                </label>
                 <input
                   className="input"
                   type="number"
                   step="0.1"
                   min="0"
                   max="5"
+                  placeholder="4.5"
                   value={draft.rating ?? ''}
                   onChange={(e) => setField('rating', e.target.value)}
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Reseñas (opcional)</label>
+                <label className="flex items-center text-sm font-medium text-slate-700">
+                  <span className="field-optional">Reseñas</span>
+                  <span className="tooltip-trigger">
+                    ?
+                    <span className="tooltip-content">
+                      Número total de reseñas/opiniones del producto. Se muestra junto al rating.
+                    </span>
+                  </span>
+                </label>
                 <input
                   className="input"
                   type="number"
                   min="0"
+                  placeholder="0"
                   value={draft.reviews ?? ''}
                   onChange={(e) => setField('reviews', e.target.value)}
                 />
@@ -309,32 +467,48 @@ export default function ProductForm({ initialProduct, mode }: { initialProduct?:
         <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-slate-900">Precio e inventario</h2>
-              <p className="text-sm text-slate-500">Define precio base y stock disponible.</p>
+              <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
+                Precio e inventario
+                {Number(draft.price) > 0 && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
+              </h2>
+              <p className="text-sm text-slate-500">Define el precio de venta y las unidades disponibles.</p>
             </div>
           </div>
-          <div className="mt-4 grid gap-4 md:grid-cols-3">
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Precio MXN</label>
-              <input
-                className="input"
-                type="number"
-                min="0"
-                step="0.01"
-                value={draft.price}
-                onChange={(e) => setField('price', e.target.value)}
-                required
-              />
+              <label className="flex items-center gap-1 text-sm font-medium text-slate-700">
+                <span className="field-required">Precio de venta</span>
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-500">$</span>
+                <input
+                  className={`input pl-8 ${attemptedSubmit && !Number(draft.price) ? 'ring-2 ring-red-300' : ''}`}
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={draft.price}
+                  onChange={(e) => setField('price', e.target.value)}
+                  required
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">MXN</span>
+              </div>
+              <p className="text-xs text-slate-500">Precio visible al cliente en la tienda.</p>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Stock</label>
-              <input
-                className="input"
-                type="number"
-                min="0"
-                value={draft.stock}
-                onChange={(e) => setField('stock', e.target.value)}
-              />
+              <label className="text-sm font-medium text-slate-700 field-optional">Stock disponible</label>
+              <div className="relative">
+                <input
+                  className="input pr-16"
+                  type="number"
+                  min="0"
+                  placeholder="0"
+                  value={draft.stock}
+                  onChange={(e) => setField('stock', e.target.value)}
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">unidades</span>
+              </div>
+              <p className="text-xs text-slate-500">Cantidad en inventario. Déjalo vacío si es ilimitado.</p>
             </div>
           </div>
         </section>
@@ -353,44 +527,56 @@ export default function ProductForm({ initialProduct, mode }: { initialProduct?:
           </div>
         </section>
 
-        <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
-          <div className="flex items-center justify-between">
+        {/* VARIANTES CON PRECIOS INTEGRADOS */}
+        <section className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 overflow-hidden">
+          <button
+            type="button"
+            className="flex w-full items-center justify-between p-5 text-left hover:bg-slate-50/50 transition-colors"
+            onClick={() => setVariantsOpen(!variantsOpen)}
+          >
             <div>
-              <h2 className="text-lg font-semibold text-slate-900">Variantes</h2>
+              <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
+                Variantes y precios
+                <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600">Opcional</span>
+                {draft.variants.length > 0 && (
+                  <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                    {draft.variants.reduce((sum, g) => sum + g.values.length, 0)} opciones
+                  </span>
+                )}
+              </h2>
               <p className="text-sm text-slate-500">
-                Atributos visibles como talla, color o material. Los precios por variante se mantienen en el
-                backend (variantPriceMap).
+                ¿Tallas, colores o materiales? Agrega cada opción con su precio.
               </p>
             </div>
-          </div>
-          <div className="mt-4">
-            <VariantGroupsField value={draft.variants} onChange={onVariantsChange} />
-          </div>
+            {variantsOpen ? (
+              <ChevronUp className="h-5 w-5 text-slate-400" />
+            ) : (
+              <ChevronDown className="h-5 w-5 text-slate-400" />
+            )}
+          </button>
+          {variantsOpen && (
+            <div className="border-t border-slate-100 p-5">
+              <SimpleVariantEditor
+                variants={draft.variants}
+                priceMap={draft.variantPriceMap ?? {}}
+                basePrice={draft.price}
+                onVariantsChange={onVariantsChange}
+                onPriceMapChange={(map) => setField('variantPriceMap', map)}
+              />
+            </div>
+          )}
         </section>
 
         <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-slate-900">Precios por variante</h2>
+              <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
+                Productos relacionados
+                <span className="rounded-full bg-purple-50 px-2 py-0.5 text-[10px] font-semibold text-purple-600">Upsell</span>
+              </h2>
               <p className="text-sm text-slate-500">
-                Define overrides de precio por combinación exacta de variantes (ej. Tamaño:Mediano + Color:Rojo).
+                ¿Qué otros productos podrían interesarle al cliente? Agrega los slugs de productos complementarios para aumentar ventas.
               </p>
-            </div>
-          </div>
-          <div className="mt-4">
-            <VariantPriceMapField
-              groups={draft.variants}
-              value={draft.variantPriceMap ?? {}}
-              onChange={(map) => setField('variantPriceMap', cleanVariantPriceMap(map, draft.variants))}
-            />
-          </div>
-        </section>
-
-        <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold text-slate-900">Bundles / upsell</h2>
-              <p className="text-sm text-slate-500">Productos recomendados por slug.</p>
             </div>
           </div>
           <div className="mt-4 space-y-3">
@@ -460,7 +646,7 @@ export default function ProductForm({ initialProduct, mode }: { initialProduct?:
           </button>
         </div>
       </form>
-    </div>
+    </div >
   );
 }
 
@@ -542,8 +728,219 @@ function VariantGroupsField({
         className="btn border border-slate-200 bg-white text-slate-800 hover:bg-slate-50"
         onClick={addGroup}
       >
-        Añadir variante
+        Añadir grupo de variantes
       </button>
+    </div>
+  );
+}
+
+// Nuevo componente simplificado para variantes con precios integrados
+function SimpleVariantEditor({
+  variants,
+  priceMap,
+  basePrice,
+  onVariantsChange,
+  onPriceMapChange,
+}: {
+  variants: VariantGroup[];
+  priceMap: Record<string, number>;
+  basePrice: string;
+  onVariantsChange: (v: VariantGroup[]) => void;
+  onPriceMapChange: (map: Record<string, number>) => void;
+}) {
+  const [newName, setNewName] = useState('');
+  const [newValue, setNewValue] = useState('');
+  const [newPrice, setNewPrice] = useState('');
+
+  // Flatten all variant options for display
+  const allOptions = useMemo(() => {
+    const result: { group: string; value: string; key: string }[] = [];
+    variants.forEach(g => {
+      const groupName = g.name.trim();
+      if (!groupName) return;
+      g.values.forEach(v => {
+        const key = `${groupName}:${v}`;
+        result.push({ group: groupName, value: v, key });
+      });
+    });
+    return result;
+  }, [variants]);
+
+  const addOption = () => {
+    const group = newName.trim();
+    const value = newValue.trim();
+    const price = Number(newPrice);
+
+    if (!group || !value) return;
+
+    // Find or create the group
+    const existingIdx = variants.findIndex(g => g.name.trim() === group);
+    let newVariants = [...variants];
+
+    if (existingIdx >= 0) {
+      // Add value to existing group
+      const existing = newVariants[existingIdx];
+      if (!existing.values.includes(value)) {
+        newVariants[existingIdx] = {
+          ...existing,
+          values: [...existing.values, value]
+        };
+      }
+    } else {
+      // Create new group
+      newVariants.push({ name: group, values: [value] });
+    }
+
+    onVariantsChange(newVariants);
+
+    // Set price if provided
+    if (Number.isFinite(price) && price > 0) {
+      const key = `${group}:${value}`;
+      onPriceMapChange({ ...priceMap, [key]: price });
+    }
+
+    // Reset inputs
+    setNewValue('');
+    setNewPrice('');
+  };
+
+  const removeOption = (groupName: string, value: string) => {
+    const newVariants = variants.map(g => {
+      if (g.name.trim() === groupName) {
+        return { ...g, values: g.values.filter(v => v !== value) };
+      }
+      return g;
+    }).filter(g => g.values.length > 0);
+
+    onVariantsChange(newVariants);
+
+    // Remove from price map
+    const key = `${groupName}:${value}`;
+    const { [key]: _, ...rest } = priceMap;
+    onPriceMapChange(rest);
+  };
+
+  const updatePrice = (key: string, price: number) => {
+    if (Number.isFinite(price) && price > 0) {
+      onPriceMapChange({ ...priceMap, [key]: price });
+    } else {
+      const { [key]: _, ...rest } = priceMap;
+      onPriceMapChange(rest);
+    }
+  };
+
+  const base = Number(basePrice) || 0;
+
+  return (
+    <div className="space-y-4">
+      {/* Lista de opciones existentes */}
+      {allOptions.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+            Opciones configuradas
+          </p>
+          <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white">
+            {allOptions.map(({ group, value, key }) => (
+              <div key={key} className="flex items-center gap-3 px-4 py-3">
+                <div className="flex-1">
+                  <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
+                    {group}
+                  </span>
+                  <span className="ml-2 font-medium text-slate-900">{value}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-slate-400">$</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder={base.toString()}
+                    className="input w-24 text-right text-sm"
+                    value={priceMap[key] ?? ''}
+                    onChange={(e) => updatePrice(key, Number(e.target.value))}
+                  />
+                  <span className="text-xs text-slate-400">
+                    {priceMap[key] ? '' : '(base)'}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className="text-red-500 hover:text-red-700"
+                  onClick={() => removeOption(group, value)}
+                  aria-label="Eliminar"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Agregar nueva opción */}
+      <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50/60 p-4">
+        <p className="mb-3 text-sm font-semibold text-slate-700">Agregar opción de variante</p>
+        <div className="grid gap-3 md:grid-cols-4">
+          <div className="space-y-1">
+            <label className="text-xs text-slate-500">Tipo</label>
+            <input
+              className="input"
+              placeholder="Tamaño, Color..."
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              list="variant-types"
+            />
+            <datalist id="variant-types">
+              {variants.map(g => (
+                <option key={g.name} value={g.name} />
+              ))}
+            </datalist>
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs text-slate-500">Valor</label>
+            <input
+              className="input"
+              placeholder="Grande, Rojo..."
+              value={newValue}
+              onChange={(e) => setNewValue(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs text-slate-500">Precio</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">$</span>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                className="input pl-7"
+                placeholder={base.toString() || "0.00"}
+                value={newPrice}
+                onChange={(e) => setNewPrice(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="flex items-end">
+            <button
+              type="button"
+              className="btn bg-slate-900 text-white hover:bg-slate-800 w-full"
+              onClick={addOption}
+              disabled={!newName.trim() || !newValue.trim()}
+            >
+              Agregar
+            </button>
+          </div>
+        </div>
+        <p className="mt-2 text-xs text-slate-500">
+          Ej: Tipo "Tamaño", Valor "Grande", Precio $150
+        </p>
+      </div>
+
+      {allOptions.length === 0 && (
+        <div className="rounded-xl border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-sm text-slate-500">
+          No hay variantes. Agrega opciones como "Tamaño Grande - $150" para que el cliente pueda elegir.
+        </div>
+      )}
     </div>
   );
 }

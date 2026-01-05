@@ -59,6 +59,15 @@
       "cost": 120,
       "price": 220,
       "date": "2025-12-29T18:00:00.000Z"
+    },
+    {
+      "id": "d1b3bf4b-8abd-4316-a768-68ebc60b9a2d",
+      "name": "Venta 1 de prueba",
+      "quantity": 1,
+      "cost": 12,
+      "price": 12,
+      "date": "2026-01-04T18:00:00.000Z",
+      "note": "12"
     }
   ]
 }

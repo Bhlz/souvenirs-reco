@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { getAllProducts, getOrders } from '@/lib/store';
-import { getSales, summarizeSales } from '@/lib/sales';
+import { getSales, summarizeSales, getTodaySales, getYesterdaySales, getCurrentMonthSales } from '@/lib/sales';
 import { ADMIN_COOKIE, verifyAdminToken } from '@/lib/admin-auth';
 
 async function ensureAuth(req: NextRequest) {
@@ -12,32 +12,83 @@ async function ensureAuth(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     await ensureAuth(req);
-    const [products, orders, sales] = await Promise.all([getAllProducts(), getOrders(), getSales()]);
-    const totalRevenue = orders.reduce((sum, o) => sum + (o.total ?? 0), 0);
+
+    // Obtener datos en paralelo para mejor rendimiento
+    const [products, orders, allSales, todaySales, yesterdaySales, monthSales] = await Promise.all([
+      getAllProducts(),
+      getOrders(),
+      getSales(),
+      getTodaySales(),
+      getYesterdaySales(),
+      getCurrentMonthSales(),
+    ]);
+
+    // Métricas de órdenes online
+    const totalOnlineRevenue = orders.reduce((sum, o) => sum + (o.total ?? 0), 0);
     const pendingOrders = orders.filter((o) =>
       ['pending', 'in_process', 'unknown'].includes(o.status)
     ).length;
     const shippedOrders = orders.filter((o) => o.shipment?.status === 'shipped').length;
+    const approvedOrders = orders.filter((o) => o.status === 'approved').length;
+
+    // Productos
     const lowStock = products.filter((p) => (p.stock ?? 0) <= 5);
     const recentOrders = [...orders].slice(-10).reverse();
     const topProducts = [...products]
       .sort((a, b) => (b.reviews ?? 0) - (a.reviews ?? 0))
       .slice(0, 6);
 
-    const salesSummary = summarizeSales(sales);
+    // Métricas de ventas físicas
+    const allSalesSummary = summarizeSales(allSales);
+    const todaySummary = summarizeSales(todaySales);
+    const yesterdaySummary = summarizeSales(yesterdaySales);
+    const monthSummary = summarizeSales(monthSales);
+
+    // Comparación día a día
+    const todayVsYesterday = yesterdaySummary.totalRevenue > 0
+      ? ((todaySummary.totalRevenue - yesterdaySummary.totalRevenue) / yesterdaySummary.totalRevenue * 100).toFixed(1)
+      : todaySummary.totalRevenue > 0 ? '+100' : '0';
+
+    // Ingreso total combinado (online + físico)
+    const totalCombinedRevenue = totalOnlineRevenue + allSalesSummary.totalRevenue;
 
     return Response.json({
       metrics: {
-        totalRevenue,
+        // Ingresos totales
+        totalRevenue: totalCombinedRevenue,
+        onlineRevenue: totalOnlineRevenue,
+        physicalRevenue: allSalesSummary.totalRevenue,
+
+        // Órdenes
         pendingOrders,
         shippedOrders,
-        productCount: products.length,
+        approvedOrders,
         ordersCount: orders.length,
+
+        // Productos
+        productCount: products.length,
+        lowStockCount: lowStock.length,
+
+        // Ventas físicas hoy
+        todayRevenue: todaySummary.totalRevenue,
+        todayProfit: todaySummary.profit,
+        todaySalesCount: todaySales.length,
+
+        // Comparación
+        revenueChange: todayVsYesterday, // porcentaje de cambio vs ayer
+
+        // Mes actual
+        monthRevenue: monthSummary.totalRevenue,
+        monthProfit: monthSummary.profit,
+        monthSalesCount: monthSales.length,
       },
       lowStock,
       recentOrders,
       topProducts,
-      salesSummary,
+      salesSummary: allSalesSummary, // resumen general de ventas físicas
+      todaySales: todaySummary,
+      yesterdaySales: yesterdaySummary,
+      monthSales: monthSummary,
       updatedAt: Date.now(),
     });
   } catch (e) {
