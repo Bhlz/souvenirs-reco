@@ -14,12 +14,17 @@ import { getAllProducts } from '@/lib/store';
 import Reveal from '@/components/ui/Reveal';
 
 export default async function Page() {
-  const products = await getAllProducts();
+  let products: any[] = [];
+  try {
+    products = await getAllProducts();
+  } catch (error) {
+    console.error('FAILED TO LOAD PRODUCTS:', error);
+  }
   const featured = products.slice(0, 3);
 
   return (
     <>
-      <Hero/>
+      <Hero />
 
       {/* Destacados (solo algunos productos) */}
       <section className="relative overflow-hidden py-16">
@@ -51,12 +56,12 @@ export default async function Page() {
       </section>
 
       {/* Resto de secciones */}
-      <Collections/>
-      <ReviewsUGC/>
-      <Benefits/>
-      <Story/>
-      <LocationSection/>
-      <FAQ/>
+      <Collections />
+      <ReviewsUGC />
+      <Benefits />
+      <Story />
+      <LocationSection />
+      <FAQ />
     </>
   );
 }
