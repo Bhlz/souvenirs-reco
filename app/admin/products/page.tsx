@@ -2,6 +2,9 @@ import Link from 'next/link';
 import { getAllProducts } from '@/lib/store';
 import ProductsTable from './_components/ProductsTable';
 
+// Prevent static generation - requires database at runtime
+export const dynamic = 'force-dynamic';
+
 export default async function AdminProducts() {
   const products = await getAllProducts();
 

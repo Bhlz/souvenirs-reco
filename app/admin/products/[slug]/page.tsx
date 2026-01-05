@@ -3,6 +3,9 @@ import ProductForm from '../_components/ProductForm';
 import { getProduct } from '@/lib/store';
 import type { Product } from '@/lib/types';
 
+// Prevent static generation - requires database at runtime
+export const dynamic = 'force-dynamic';
+
 export default async function EditProduct({
   params,
 }: {

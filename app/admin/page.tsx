@@ -2,6 +2,9 @@ import { getAllProducts, getOrders } from '@/lib/store';
 import { getSales, summarizeSales } from '@/lib/sales';
 import RealtimeDashboard from './_components/RealtimeDashboard';
 
+// Prevent static generation - requires database at runtime
+export const dynamic = 'force-dynamic';
+
 export default async function AdminDashboard() {
   const [products, orders, sales] = await Promise.all([getAllProducts(), getOrders(), getSales()]);
   const totalRevenue = orders.reduce((sum, o) => sum + (o.total ?? 0), 0);
