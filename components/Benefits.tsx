@@ -10,7 +10,7 @@ export default function Benefits() {
   const items = [
     {
       icon: <Shield className="h-5 w-5" />,
-      title: 'Productos 100% artesanales',
+      title: 'Productos 100% artesanales mexicanos ',
       text: 'Cada pieza refleja la esencia de México y está hecha a mano con dedicación y detalle.',
       color: 'from-emerald-500 to-teal-600'
     },
