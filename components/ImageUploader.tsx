@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 export default function ImageUploader({ onUploaded }: { onUploaded: (url: string) => void }) {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string|null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
@@ -24,11 +24,14 @@ export default function ImageUploader({ onUploaded }: { onUploaded: (url: string
         const fd = new FormData();
         fd.append('file', f);
         const res = await fetch('/api/upload', { method: 'POST', body: fd });
-        if (!res.ok) throw new Error('Upload error');
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data.details || data.error || 'Upload error');
+        }
         onUploaded(data.url);
       }
     } catch (e: any) {
+      console.error('Upload error:', e);
       setError(e.message || 'Error');
     } finally {
       setLoading(false);
