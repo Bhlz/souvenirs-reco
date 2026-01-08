@@ -1,7 +1,7 @@
 // app/order/[id]/page.tsx
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, use } from 'react';
 
 type OrderItem = { slug: string; qty: number; price: number };
 type Order = {
@@ -16,13 +16,15 @@ function currency(n: number) {
   return n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 }
 
-// Nota: Tipado relajado para compatibilidad con Next 15 (params puede ser Promise en PageProps)
-export default function OrderPage({ params }: any) {
-  // En runtime, Next te pasa un objeto { id: string }, así que accedemos de forma defensiva:
-  const id: string | undefined = params?.id;
+// Next.js 15: params es una Promise
+export default function OrderPage({ params }: { params: Promise<{ id: string }> }) {
+  // Usar React.use() para resolver la Promise de params
+  const resolvedParams = use(params);
+  const id: string | undefined = resolvedParams?.id;
 
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+
 
   useEffect(() => {
     if (!id) {

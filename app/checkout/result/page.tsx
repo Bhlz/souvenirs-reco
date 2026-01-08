@@ -1,12 +1,13 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
+import { Suspense, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react';
 
 function CheckoutResultContent() {
     const searchParams = useSearchParams();
+    const syncAttempted = useRef(false);
 
     // Parámetros que envía Mercado Pago
     const status = searchParams.get('status') || searchParams.get('collection_status');
@@ -14,6 +15,34 @@ function CheckoutResultContent() {
     const externalReference = searchParams.get('external_reference');
     const preferenceId = searchParams.get('preference_id');
     const paymentType = searchParams.get('payment_type');
+
+    // Sincronizar venta automáticamente cuando el pago es aprobado
+    useEffect(() => {
+        if (status === 'approved' && paymentId && !syncAttempted.current) {
+            syncAttempted.current = true;
+
+            // Llamar al endpoint sync-sale para registrar la venta
+            fetch('/api/orders/sync-sale', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    paymentId,
+                    externalReference,
+                }),
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.ok) {
+                        console.log('[Result] Venta sincronizada:', data);
+                    } else {
+                        console.warn('[Result] Error sincronizando venta:', data);
+                    }
+                })
+                .catch(err => {
+                    console.error('[Result] Error llamando sync-sale:', err);
+                });
+        }
+    }, [status, paymentId, externalReference]);
 
     const getStatusInfo = () => {
         switch (status) {
@@ -54,6 +83,7 @@ function CheckoutResultContent() {
     };
 
     const statusInfo = getStatusInfo();
+
 
     return (
         <div className="container py-12">
