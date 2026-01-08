@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
           pending: `${origin}/checkout/result`,
         },
         auto_return: 'approved', // solo redirect/mobile
-        binary_mode: true,
+        // binary_mode quitado para permitir pagos "pendientes" en lugar de rechazarlos
         notification_url: process.env.MP_WEBHOOK_URL ?? `${origin}/api/webhooks/mp`,
         external_reference: orderId,
         metadata: { orderId, billing, pricingSnapshot: pricing ?? null },
