@@ -383,3 +383,9 @@ export async function getOrders() {
     createdAt: o.createdAt,
   }));
 }
+
+export async function deleteOrder(id: string) {
+  await prisma.order.delete({
+    where: { id },
+  });
+}

@@ -69,6 +69,19 @@ export default function AdminOrders() {
     return true;
   };
 
+  const handleDeleteOrder = async (id: string) => {
+    if (!confirm('¿Eliminar esta orden? Esta acción no se puede deshacer.')) return;
+    setLoadingId(id);
+    const res = await fetch(`/api/admin/orders?id=${id}`, { method: 'DELETE' });
+    setLoadingId(null);
+    if (res.ok) {
+      toast('Orden eliminada');
+      mutate();
+    } else {
+      toast('Error al eliminar orden');
+    }
+  };
+
   if (error) return <div className="container py-10 text-red-600">{error.message}</div>;
   if (isLoading) return <div className="container py-10">Cargando órdenes…</div>;
 
@@ -130,6 +143,7 @@ export default function AdminOrders() {
             order={o}
             loading={loadingId === o.id}
             onSave={(patch) => updateOrder(o.id, patch)}
+            onDelete={() => handleDeleteOrder(o.id)}
           />
         ))}
       </div>
@@ -140,11 +154,13 @@ export default function AdminOrders() {
 function OrderCard({
   order,
   onSave,
+  onDelete,
   loading,
 }: {
   order: Order & { createdAt?: string };
   loading: boolean;
   onSave: (patch: Partial<Order>) => Promise<boolean>;
+  onDelete: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [shipmentStatus, setShipmentStatus] = useState<'pending' | 'shipped' | 'delivered'>(
@@ -327,6 +343,17 @@ function OrderCard({
               </button>
             </div>
           )}
+
+          {/* Delete Button */}
+          <div className="pt-3 border-t border-slate-100 flex justify-end">
+            <button
+              className="text-sm text-red-600 hover:text-red-700 hover:underline"
+              onClick={(e) => { e.stopPropagation(); onDelete(); }}
+              disabled={loading}
+            >
+              Eliminar orden
+            </button>
+          </div>
         </div>
       )}
     </div>
