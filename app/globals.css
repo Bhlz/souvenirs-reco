@@ -2,75 +2,206 @@
 @tailwind components;
 @tailwind utilities;
 
-:root{ color-scheme: light; }
-html, body { @apply h-full scroll-smooth; }
-body { @apply antialiased text-neutral-800; }
-.container { @apply mx-auto max-w-7xl px-4; }
-.btn { @apply inline-flex items-center justify-center rounded-2xl px-5 py-3 text-base font-semibold shadow-soft transition active:scale-[.98]; }
-.btn-primary { @apply btn bg-brand text-white hover:bg-brand-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand; }
-.btn-secondary { @apply btn bg-neutral-900 text-white hover:bg-neutral-800; }
-.badge { @apply inline-flex items-center gap-2 rounded-full bg-neutral-100 px-3 py-1 text-sm; }
-.card { @apply rounded-3xl border border-neutral-200 bg-white p-4 shadow-soft; }
-.input { @apply w-full rounded-xl border border-neutral-300 px-4 py-3 outline-none focus:border-brand; }
-.section-title { @apply text-2xl md:text-3xl font-bold tracking-tight; }
+:root {
+  color-scheme: light;
+}
 
-.btn:active{ transform: translateY(1px); }
+html,
+body {
+  @apply h-full scroll-smooth;
+}
+
+body {
+  @apply antialiased text-neutral-800;
+}
+
+.container {
+  @apply mx-auto max-w-7xl px-4;
+}
+
+.btn {
+  @apply inline-flex items-center justify-center rounded-2xl px-5 py-3 text-base font-semibold shadow-soft transition active:scale-[.98];
+}
+
+.btn-primary {
+  @apply btn bg-brand text-white hover:bg-brand-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand;
+}
+
+.btn-secondary {
+  @apply btn bg-neutral-900 text-white hover:bg-neutral-800;
+}
+
+.badge {
+  @apply inline-flex items-center gap-2 rounded-full bg-neutral-100 px-3 py-1 text-sm;
+}
+
+.card {
+  @apply rounded-3xl border border-neutral-200 bg-white p-4 shadow-soft;
+}
+
+.input {
+  @apply w-full rounded-xl border border-neutral-300 px-4 py-3 outline-none focus:border-brand;
+}
+
+.section-title {
+  @apply text-2xl md:text-3xl font-bold tracking-tight;
+}
+
+/* Safe area para dispositivos con notch (iPhone X+) */
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-area-pt {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+
+.btn:active {
+  transform: translateY(1px);
+}
 
 /* ===== Dashboard Animations ===== */
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes slideInRight {
-  from { opacity: 0; transform: translateX(30px); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @keyframes chartGrow {
-  from { transform: scaleY(0); opacity: 0.5; }
-  to { transform: scaleY(1); opacity: 1; }
+  from {
+    transform: scaleY(0);
+    opacity: 0.5;
+  }
+
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
 }
 
 @keyframes drawLine {
-  to { stroke-dashoffset: 0; }
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-  50% { box-shadow: 0 0 20px 4px rgba(16, 185, 129, 0.15); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 20px 4px rgba(16, 185, 129, 0.15);
+  }
 }
 
 @keyframes countUp {
-  from { opacity: 0.3; filter: blur(4px); }
-  to { opacity: 1; filter: blur(0); }
+  from {
+    opacity: 0.3;
+    filter: blur(4px);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 /* Animation utility classes */
-.animate-fade-in-up { animation: fadeInUp 0.5s ease-out forwards; opacity: 0; }
-.animate-scale-in { animation: scaleIn 0.4s ease-out forwards; opacity: 0; }
-.animate-slide-in-right { animation: slideInRight 0.5s ease-out forwards; opacity: 0; }
-.animate-count-up { animation: countUp 0.6s ease-out forwards; }
-.animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.4s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-count-up {
+  animation: countUp 0.6s ease-out forwards;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
 
 /* Staggered delays */
-.delay-0 { animation-delay: 0ms; }
-.delay-1 { animation-delay: 80ms; }
-.delay-2 { animation-delay: 160ms; }
-.delay-3 { animation-delay: 240ms; }
-.delay-4 { animation-delay: 320ms; }
-.delay-5 { animation-delay: 400ms; }
-.delay-6 { animation-delay: 480ms; }
+.delay-0 {
+  animation-delay: 0ms;
+}
+
+.delay-1 {
+  animation-delay: 80ms;
+}
+
+.delay-2 {
+  animation-delay: 160ms;
+}
+
+.delay-3 {
+  animation-delay: 240ms;
+}
+
+.delay-4 {
+  animation-delay: 320ms;
+}
+
+.delay-5 {
+  animation-delay: 400ms;
+}
+
+.delay-6 {
+  animation-delay: 480ms;
+}
 
 /* Chart styles */
 .chart-line {

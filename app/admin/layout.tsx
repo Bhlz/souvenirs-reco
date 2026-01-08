@@ -11,6 +11,7 @@ import {
 import Toaster from '@/components/Toaster';
 import { TrendingUp } from 'lucide-react';
 import LogoutButton from './_components/LogoutButton';
+import MobileNav from './_components/MobileNav';
 
 const nav = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -29,6 +30,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         [data-public="true"], #freeshipping-bar, .whatsapp-button { display: none !important; }
       `}</style>
       <div className="flex min-h-screen">
+        {/* Sidebar - Solo visible en desktop */}
         <aside className="hidden w-64 flex-col border-r bg-white/90 px-4 py-6 shadow-sm backdrop-blur lg:flex">
           <Link href="/" className="flex items-center gap-2 rounded-xl p-3 hover:bg-slate-100">
             <Home className="h-5 w-5 text-brand" />
@@ -61,27 +63,46 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </aside>
 
-        <div className="flex flex-1 flex-col">
+        <div className="flex flex-1 flex-col pb-20 lg:pb-0">
+          {/* Header - Responsivo */}
           <header className="sticky top-0 z-10 border-b bg-white/80 backdrop-blur">
-            <div className="container flex h-16 items-center justify-between">
-              <div>
+            <div className="container flex h-14 items-center justify-between lg:h-16">
+              {/* Mobile: Logo simple */}
+              <div className="lg:hidden">
+                <Link href="/admin" className="text-lg font-bold text-brand">
+                  Admin
+                </Link>
+              </div>
+
+              {/* Desktop: Título completo */}
+              <div className="hidden lg:block">
                 <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Dashboard</div>
                 <div className="text-lg font-semibold text-slate-900">Área administrativa</div>
               </div>
-              <div className="flex items-center gap-3">
-                <Link href="/admin/products/new" className="btn-primary">Nuevo producto</Link>
-                <Link href="/admin/orders" className="btn">Órdenes</Link>
+
+              {/* Acciones - Ocultar en móvil los menos importantes */}
+              <div className="flex items-center gap-2 lg:gap-3">
+                <Link href="/admin/products/new" className="btn-primary text-sm lg:text-base">
+                  <span className="hidden sm:inline">Nuevo producto</span>
+                  <span className="sm:hidden">+ Producto</span>
+                </Link>
+                <Link href="/admin/orders" className="btn hidden sm:inline-flex">Órdenes</Link>
                 <LogoutButton />
               </div>
             </div>
           </header>
 
-          <main className="container flex-1 pb-12 pt-6">
+          {/* Main content - Con padding bottom extra en móvil para la nav */}
+          <main className="container flex-1 px-4 py-4 lg:px-6 lg:py-6">
             {children}
           </main>
         </div>
       </div>
-      <Toaster/>
+
+      {/* Navegación inferior móvil */}
+      <MobileNav />
+
+      <Toaster />
     </div>
   );
 }

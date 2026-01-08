@@ -21,15 +21,19 @@ export async function GET(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     await ensureAuth(req);
-    const { id, shipment, invoice, status } = await req.json();
+    const body = await req.json();
+    const { id, invoice, status } = body;
+    // Acepta tanto 'shipment' como 'shipmentInfo' del frontend
+    const shipmentData = body.shipmentInfo || body.shipment;
+
     if (!id) return new Response('Bad Request', { status: 400 });
     const patch: Record<string, any> = {};
 
-    if (shipment) {
-      patch.shipment = {
-        status: shipment.status,
-        tracking: shipment.tracking,
-        carrier: shipment.carrier,
+    if (shipmentData) {
+      patch.shipmentInfo = {
+        status: shipmentData.status,
+        tracking: shipmentData.tracking,
+        carrier: shipmentData.carrier,
       };
     }
 
@@ -40,8 +44,9 @@ export async function PUT(req: NextRequest) {
 
     await updateOrderByExternalRef(id, patch);
     return Response.json({ ok: true });
-  } catch {
-    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  } catch (e) {
+    console.error('[orders:PUT]', e);
+    return Response.json({ error: 'Error al actualizar orden' }, { status: 500 });
   }
 }
 
